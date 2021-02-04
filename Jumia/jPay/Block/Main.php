@@ -13,7 +13,7 @@ use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
  
 class Main extends  \Magento\Framework\View\Element\Template
 {
-	 protected $_objectmanager;
+	 protected $objectManager;
 	 protected $checkoutSession;
 	 protected $orderFactory;
 	 protected $urlBuilder;
@@ -30,7 +30,10 @@ class Main extends  \Magento\Framework\View\Element\Template
 			Http $response,
 			TransactionBuilder $tb,
 			 \Magento\AdminNotification\Model\Inbox $inbox,
-             \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory
+             \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory,
+             \Magento\Catalog\Helper\Image $imageHelper
+
+
 		) {
 
       
@@ -42,15 +45,22 @@ class Main extends  \Magento\Framework\View\Element\Template
          $this->logger = $logger;
          $this->inbox = $inbox;
 
+
 		$this->urlBuilder = \Magento\Framework\App\ObjectManager::getInstance()
 							->get('Magento\Framework\UrlInterface');
          $this->_productRepositoryFactory = $productRepositoryFactory;
+         $this->imageHelper = $imageHelper;
 		parent::__construct($context);
-         $this->logger->info("Test Athar");
+
     }
 
 	public function _prepareLayout()
 	{
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $store  = $objectManager->get('Magento\Framework\Locale\Resolver');
+        $remote = $objectManager->get('Magento\Framework\HTTP\PhpEnvironment\RemoteAddress');
+
         $this->logger->info("logger test");
 		$method_data = array();
 		$orderId = $this->checkoutSession->getLastOrderId();
@@ -85,7 +95,9 @@ class Main extends  \Magento\Framework\View\Element\Template
 
 			//var_dump($trn);exit;
 			try{
-				$storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+                $order = $objectManager->create('\Magento\Sales\Model\OrderRepository')->get($orderId);
+
+                $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
                 $environment = $this->config->getValue("payment/jPay_gateway/jPayEnvironment",$storeScope);
 
                 // live data
@@ -114,8 +126,7 @@ class Main extends  \Magento\Framework\View\Element\Template
                 $this->logger->info("environment: ". $sandbox_shop_config_key);
                 $this->logger->info("environment: ". $sandbox_api_key);
 
-                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                $order = $objectManager->create('\Magento\Sales\Model\OrderRepository')->get($orderId);
+
                 // Get Order Information
 
                 $order->getEntityId();
@@ -133,19 +144,23 @@ class Main extends  \Magento\Framework\View\Element\Template
 
                 $billingaddress = $order->getBillingAddress();
                 $billingcity = $billingaddress->getCity();
-                $billingstreet = $billingaddress->getStreet();
+                $billingStreet  = $billingaddress->getStreet();
+                $billingstate  = $billingaddress->getState();
                 $billingpostcode = $billingaddress->getPostcode();
                 $billingtelephone = $billingaddress->getTelephone();
                 $billingstate_code = $billingaddress->getRegionCode();
+                $billingstate_country_ID = $billingaddress->getCountryId();
 
                 // get shipping details
 
                 $shippingaddress = $order->getShippingAddress();
                 $shippingcity = $shippingaddress->getCity();
-                $shippingstreet = $shippingaddress->getStreet();
+                $shippingstate = $shippingaddress->getState();
+                $shippingStreet = $shippingaddress->getStreet();
                 $shippingpostcode = $shippingaddress->getPostcode();
                 $shippingtelephone = $shippingaddress->getTelephone();
                 $shippingstate_code = $shippingaddress->getRegionCode();
+                $shippingstate_country_ID = $shippingaddress->getCountryId();
 
                 $grandTotal = $order->getGrandTotal();
                 $subTotal = $order->getSubtotal();
@@ -158,7 +173,7 @@ class Main extends  \Magento\Framework\View\Element\Template
 
                 // Get Order Items
 
-                $orderItems = $order->getAllItems();
+                $orderItems = $order->getAllVisibleItems();
                 $shop_currency=$this->_storeManager->getStore()->getCurrentCurrency()->getCode();
                 $basketItems=array();
                 foreach ($orderItems as $item) {
@@ -171,7 +186,7 @@ class Main extends  \Magento\Framework\View\Element\Template
                     $ProductOptionsArray=$item->getProductOptions();
                     foreach($ProductOptionsArray as $ProductOptionsArrayy){
                         //print_r($ProductOptionsArrayy);
-                        $this->logger->info("basketItems ".print_r($ProductOptionsArrayy,true));
+                       // $this->logger->info("basketItems ".print_r($ProductOptionsArrayy,true));
                         //echo "</br>";
                         //echo "</br>";
                     }
@@ -183,97 +198,80 @@ class Main extends  \Magento\Framework\View\Element\Template
                     $product = $this->_productRepositoryFactory->create()
                         ->getById($item->getProductId());
 
+                    $image_url = $this->imageHelper->init($product, 'product_base_image')->getUrl();
+
                     $basketItem=[
                         "name"=> $item->getName(),
-                        "imageUrl"=>$product->getData('image') ,
+                        "imageUrl"=>$image_url ,
                         "amount"=> $item->getPrice(),
-                        "quantity"=> $order->getTotalQtyOrdered(),
+                        "quantity"=> $item->getQtyOrdered(),
                         "discount"=>"",
                         "currency"=> $shop_currency
                     ];
                     array_push($basketItems,$basketItem);
                 }
 
-               // $order = $this->orderRepository->get($orderId);
-                $this->logger->info("basketItems ".print_r($basketItems,true));
-//                foreach ($order->getAllItems() as $item) {
-//                    $itemData=var_dump($item->getData());
-//                    $this->logger->info("order ".print_r($itemData,true));
-//
-//                }
+
+
+
+
 
                 $data = [
                     "shopConfig" => "AAEAAADoKU7YgGwKYflQNlBOFfi-DNmu9TzbGIv3rj0uJ6z1i80Khvsu/AAEAAAgfi1Nv53Or3XXCqViItwbBHKyfjUEyDHDDPqatNxvQ4qMXzTRw/c816721cc23561541b01dca69376a5a3",
                     "basket" => array(
                         "shipping" => "0",
-                        "currency" => "NGN",
-                        "basketItems" => array(
-                            array(
-                                "name" => "Ibis Lagos Airport",
-                                "imageUrl" => "https://example.com/image.jpg",
-                                "amount" => "230",
-                                "quantity" => "1",
-                                "discount" => "",
-                                "currency" => "NGN"
-                            ),
-                            array(
-                                "name" => "Ibis Lagos Airport",
-                                "imageUrl" => "https://example.com/image.jpg",
-                                "amount" => "80",
-                                "quantity" => "2",
-                                "currency" => "NGN"
-                            )
-                        ),
-                        "totalAmount" => "390",
+                        "currency" => $shop_currency,
+                        "basketItems" => $basketItems,
+                        "totalAmount" => $grandTotal,
                         "discount" => ""
                     ),
                     "consumerData" => array(
-                        "emailAddress" => "email@example.com",
-                        "mobilePhoneNumber" => "+2348021234567",
-                        "country" => "NG",
-                        "firstName" => "Test",
-                        "lastName" => "Booking",
-                        "ipAddress" => "172.16.0.1",
+                        "emailAddress" => $billing->getEmail(),
+                        "mobilePhoneNumber" => $billingtelephone,
+                        "country" => $billingstate_country_ID,
+                        "firstName" => $billing->getFirstname(),
+                        "lastName" => $billing->getLastname(),
+                        "ipAddress" => $remote->getRemoteAddress(),
                         "dateOfBirth" => "",
-                        "language" => "EN",
-                        "name" => "Test Booking"
+                        "language" => $store->getLocale(),
+                        "name" => $billing->getFirstname()." ".$billing->getLastname(),
                     ),
-                    "priceCurrency" => "NGN",
-                    "description" => "Jumia Travel booking",
-                    "purchaseReturnUrl" => "https://asterix.inthrs//book/payreturn/5kooig?lastname=Booking",
-                    "purchaseCallbackUrl" => "https://avoranfix.inthrs/pay_panoramix_proxy",
+                    "priceCurrency" => $shop_currency,
+                    "purchaseReturnUrl" => $this->urlBuilder->getUrl("jumia/response")."?orderid=".$order->getRealOrderId(),
+                    "purchaseCallbackUrl" => $this->urlBuilder->getUrl("jumia/response")."?orderid=".$order->getRealOrderId(),
                     "shippingAddress" => array(
-                        "addressLine1" => "11 Commercial Avenue Sabo",
+                        "addressLine1" => $shippingStreet[0],
                         "addressLine2" => "Yaba",
-                        "city" => "Lagos",
-                        "district" => "Lagos",
-                        "province" => "Lagos",
-                        "zip" => "",
-                        "country" => "NG",
-                        "name" => "Test Booking",
-                        "firstName" => "Test",
-                        "lastName" => "Booking",
-                        "mobilePhoneNumber" => "+2348021234567"
+                        "city" => $shippingcity,
+                        "district" => $shippingstate,
+                        "province" => $shippingstate,
+                        "zip" => $shippingpostcode,
+                        "country" => $shippingstate_country_ID,
+                        "name" => $shippingaddress->getFirstname()." ".$shippingaddress->getLastname(),
+                        "firstName" => $shippingaddress->getFirstname(),
+                        "lastName" => $shippingaddress->getLastname(),
+                        "mobilePhoneNumber" => $shippingtelephone
                     ),
                     "billingAddress" => array(
-                        "addressLine1" => "11 Commercial Avenue Sabo",
+                        "addressLine1" => $billingStreet[0],
                         "addressLine2" => "Yaba",
-                        "city" => "Lagos",
-                        "district" => "Lagos",
-                        "province" => "Lagos",
-                        "zip" => "",
-                        "country" => "NG",
-                        "name" => "Test Booking",
-                        "firstName" => "Test",
-                        "lastName" => "Booking",
-                        "mobilePhoneNumber" => "+2348021234567"
+                        "city" => $billingcity,
+                        "district" => $billingstate,
+                        "province" => $billingstate,
+                        "zip" => $billingpostcode,
+                        "country" => $billingstate_country_ID,
+                        "name" => $billing->getFirstname()." ".$billing->getLastname(),
+                        "firstName" => $billing->getFirstname(),
+                        "lastName" => $billing->getLastname(),
+                        "mobilePhoneNumber" => $billingtelephone
                     ),
                     "additionalData" => array(),
                     "merchantReferenceId" => time().$order->getRealOrderId(),
                     "customerType" => "regular",
-                    "priceAmount" => "390"
+                    "priceAmount" => $grandTotal
                 ];
 
+                $this->logger->info("basketItems ".print_r($data,true));
                 $headers=array("apikey: X1w51boOivgwnV4QoHbWdKBlQ2MwBZBhYVpwL2PQLVLdZ3JV6Ekjg51c9Kd2FjWo","Content-type: application/json");
 
 				$api_data['transaction_id'] = time() ."-". $order->getRealOrderId();

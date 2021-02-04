@@ -20,6 +20,7 @@ Class Jumia
 	private $client_id;
 	private $client_secret;
 
+
 	 function __construct($environment,$country_list,$shop_config_key,$api_key,$logger,$data,$headers)
 	{
         $this->logger = $logger;
