@@ -92,7 +92,7 @@ class Main extends  \Magento\Framework\View\Element\Template
             $payment->setParentTransactionId(null);
             $payment->save();
             $order->save();
-
+            $merchantReferenceId= time().$order->getRealOrderId();
 			//var_dump($trn);exit;
 			try{
                 $order = $objectManager->create('\Magento\Sales\Model\OrderRepository')->get($orderId);
@@ -204,7 +204,7 @@ class Main extends  \Magento\Framework\View\Element\Template
                         "name"=> $item->getName(),
                         "imageUrl"=>$image_url ,
                         "amount"=> $item->getPrice(),
-                        "quantity"=> $item->getQtyOrdered(),
+                        "quantity"=> intval($item->getQtyOrdered()),
                         "discount"=>"",
                         "currency"=> $shop_currency
                     ];
@@ -266,10 +266,15 @@ class Main extends  \Magento\Framework\View\Element\Template
                         "mobilePhoneNumber" => $billingtelephone
                     ),
                     "additionalData" => array(),
-                    "merchantReferenceId" => time().$order->getRealOrderId(),
+                    "merchantReferenceId" => $merchantReferenceId,
                     "customerType" => "regular",
                     "priceAmount" => $grandTotal
                 ];
+
+                $order->setData('merchantReferenceId', $merchantReferenceId );
+                $order->save();
+                $mymerchantReferenceId=$order->getData('merchantReferenceId');
+                $this->logger->info("paymentStatus failed".$mymerchantReferenceId);
 
                 $this->logger->info("basketItems ".print_r($data,true));
                 $headers=array("apikey: X1w51boOivgwnV4QoHbWdKBlQ2MwBZBhYVpwL2PQLVLdZ3JV6Ekjg51c9Kd2FjWo","Content-type: application/json");
@@ -285,7 +290,7 @@ class Main extends  \Magento\Framework\View\Element\Template
 				$ds = DIRECTORY_SEPARATOR;
 				include __DIR__ . "$ds..$ds/lib/Jumia.php";
 
-				$api = new \Jumia($environment,$country_list,$shop_config_key,$api_key,$this->logger,$data,$headers);
+				$api = new \Jumia($environment,$country_list,$shop_config_key,$api_key,$this->logger,$data,$headers,$order);
 				$response = $api->createOrderPayment($api_data);
 				$this->logger->info("Response from Server". print_r($response,true));
 				if(isset($response->order ))

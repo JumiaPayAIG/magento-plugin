@@ -21,10 +21,11 @@ Class Jumia
 	private $client_secret;
 
 
-	 function __construct($environment,$country_list,$shop_config_key,$api_key,$logger,$data,$headers)
+	 function __construct($environment,$country_list,$shop_config_key,$api_key,$logger,$data,$headers,$order)
 	{
         $this->logger = $logger;
         $this->data = $data;
+        $this->order = $order;
         $this->headers = $headers;
 		$this->curl = new Curl();
 		$this->curl->setCacert(__DIR__."/cacert.pem");
@@ -66,10 +67,14 @@ Class Jumia
         var_dump($payload);
         $this->logger->info('$checkoutUrl ='.print_r($payload,true));
         $checkoutUrl=$payload->checkoutUrl;
+        $purchaseId=$payload->purchaseId;
         var_dump($checkoutUrl);
+        var_dump($purchaseId);
         $this->logger->info('$checkoutUrl ='.print_r($checkoutUrl,true));
 //        $resultRedirect = $this->resultRedirectFactory->create();
 //        $resultRedirect->setUrl($checkoutUrl);
+        $this->order->setData('purchaseId', $purchaseId );
+        $this->order->save();
         header("Location:".$checkoutUrl );
 //        function redirect($checkoutUrl) {
 //            ob_start();
