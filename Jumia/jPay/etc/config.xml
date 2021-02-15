@@ -10,10 +10,12 @@
         <payment>
             <jumia>
 				<active>1</active>
+                <can_capture>1</can_capture>
+                <can_refund>1</can_refund>
                 <model>Jumia\jPay\Model\JumiaPaymentMethod</model>
                 <order_status>pending</order_status>
                 <title>Jumia Pay</title>
-               
+                <group>online</group>
 			</jumia>
           
         </payment>

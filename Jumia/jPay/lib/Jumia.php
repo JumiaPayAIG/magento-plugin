@@ -71,6 +71,7 @@ Class Jumia
         var_dump($checkoutUrl);
         var_dump($purchaseId);
         $this->logger->info('$checkoutUrl ='.print_r($checkoutUrl,true));
+        $this->logger->info('purchaseId ='.print_r($purchaseId,true));
 //        $resultRedirect = $this->resultRedirectFactory->create();
 //        $resultRedirect->setUrl($checkoutUrl);
         $this->order->setData('purchaseId', $purchaseId );

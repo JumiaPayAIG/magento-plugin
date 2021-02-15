@@ -80,50 +80,96 @@ class Index extends  \Magento\Framework\App\Action\Action
             $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/failure'));
         }
 
-        if($_SERVER['REQUEST_METHOD'] === 'POST' && $paymentStatus!='failure'){
+        if(isset($_POST)&& $paymentStatus!='failure'){
+            $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+            $environment = $this->config->getValue("payment/jPay_gateway/jPayEnvironment",$storeScope);
 
-                $body = file_get_contents('php://input');
-                $DecodeBody=urldecode($body);
-                parse_str($DecodeBody,$bodyArray);
-                $JsonDecodeBody = json_decode($bodyArray['transactionEvents'], true);
+            // live data
+            $client_id = $this->config->getValue("payment/instamojo/client_id",$storeScope);
+            $live_country_list = $this->config->getValue("payment/jPay_gateway/country_list",$storeScope);
+            $live_shop_config_key = $this->config->getValue("payment/jPay_gateway/shop_config_key",$storeScope);
+            $live_api_key = $this->config->getValue("payment/jPay_gateway/api_key",$storeScope);
+            // sandbox data
+            $sandbox_country_list = $this->config->getValue("payment/jPay_gateway/jPay_sandbox/jPayCountry",$storeScope);
+            $sandbox_shop_config_key = $this->config->getValue("payment/jPay_gateway/jPay_sandbox/ShopApiKey",$storeScope);
+            $sandbox_api_key = $this->config->getValue("payment/jPay_gateway/jPay_sandbox/MerchantApiKey",$storeScope);
+            if($environment == "Live"){
+                $country_list=$live_country_list;
+                $shop_config_key=$live_shop_config_key;
+                $api_key=$live_api_key;
+            }
+            if($environment == "Sandbox"){
+                $country_list=$sandbox_country_list;
+                $shop_config_key=$sandbox_shop_config_key;
+                $api_key=$sandbox_api_key;
+            }
+            $purchaseId=$order->getData('purchaseId');
+            $myBody=array(
+                "shopConfig" => $shop_config_key,
+                "transactionId"=> $purchaseId,
+                "transactionType"=> "Purchase"
+            );
+            $data= json_encode($myBody, JSON_FORCE_OBJECT);
+            $endpoint ="https://api-sandbox-pay.jumia.com.ng/merchant/transaction-events";
+            $headers=[
+                "apiKey:".$api_key,
+                "Content-type: application/json"];
+            $curl = curl_init($endpoint);
+            curl_setopt($curl, CURLOPT_HEADER, false);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //curl error SSL certificate problem, verify that the CA cert is OK
 
-                // save the transactionEvents for debugging purposes ( this will be removed in the production version )
+            $result		= curl_exec($curl);
+            $response	= json_decode($result);
 
-                $this->logger->info("JsonDecodeBody = ".print_r($JsonDecodeBody,true));
+            $payload=$response->payload;
+            foreach($payload as $body){
+                $bodyArray = (array)$body;
+
+                if($bodyArray['newStatus']=="Created"){
+                    $paymentLastStatus= "Created";
+                }
+                if($bodyArray['newStatus']=="Confirmed"){
+                    $paymentLastStatus= "Confirmed";
+
+                }
+                if($bodyArray['newStatus']=="Committed"){
+                    $paymentLastStatus= "Committed";
+                }
+                if($bodyArray['newStatus']=="Completed"){
+                    $paymentLastStatus= "Completed";
+                    $order->setState("processing")->setStatus("processing");
+                }
+                if($bodyArray['newStatus']=="Failed"){
+                    $paymentLastStatus= "Failed";
+                    $this->orderManagement->cancel($orderId);
+                }
+                if($bodyArray['newStatus']=="cancelled"){
+                    $paymentLastStatus= "cancelled";
+                    $this->orderManagement->cancel($orderId);
+                }
+                if($bodyArray['newStatus']=="Expired"){
+                    $paymentLastStatus= "Expired";
+                    $this->orderManagement->cancel($orderId);
+                }
+                $order->setData('paymentLastStatus', $paymentLastStatus );
+                $order->save();
+            }
 
 
-                    if($JsonDecodeBody[0]['newStatus']=="Created"){
-                        $paymentLastStatus= "Created";
+            curl_close($curl);
 
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="Confirmed"){
-                        $paymentLastStatus= "Confirmed";
-
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="Committed"){
-                        $paymentLastStatus= "Committed";
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="Completed"){
-                        $paymentLastStatus= "Completed";
-                        $order->setState("complete")->setStatus("complete");
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="Failed"){
-                        $paymentLastStatus= "Failed";
-                        $this->orderManagement->cancel($orderId);
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="cancelled"){
-                        $paymentLastStatus= "cancelled";
-                        $this->orderManagement->cancel($orderId);
-                    }
-                    if($JsonDecodeBody[0]['newStatus']=="Expired"){
-                        $paymentLastStatus= "Expired";
-                        $this->orderManagement->cancel($orderId);
-                    }
-
-                     $order->setData('paymentLastStatus', $paymentLastStatus );
-                     $order->save();
 
         }
+
+
+
+
+
+
 
     }
 
