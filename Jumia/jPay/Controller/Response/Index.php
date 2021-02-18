@@ -34,6 +34,7 @@ class Index extends  \Magento\Framework\App\Action\Action
 			ScopeConfigInterface $scopeConfig,
 			Http $response,
 			TransactionBuilder $tb,
+
 			 \Magento\Checkout\Model\Cart $cart,
 			 \Magento\AdminNotification\Model\Inbox $inbox,
 			 \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository,
@@ -51,6 +52,7 @@ class Index extends  \Magento\Framework\App\Action\Action
         $this->inbox = $inbox;
         $this->orderManagement = $orderManagement;
         $this->transactionRepository = $transactionRepository;
+
 		$this->urlBuilder = \Magento\Framework\App\ObjectManager::getInstance()
 							->get('Magento\Framework\UrlInterface');
 
@@ -60,8 +62,7 @@ class Index extends  \Magento\Framework\App\Action\Action
 	public function execute()
 	{
 		$payment_id = $this->getRequest()->getParam('payment_id');
-		$payment_request_id = $this->getRequest()->getParam('id'); 
-		$storedPaymentRequestId = $this->checkoutSession->getPaymentRequestId();
+
         $paymentStatus= isset($_GET['paymentStatus']) ? $_GET['paymentStatus'] : '';
         $orderId= isset($_GET['orderid']) ? $_GET['orderid'] : '';
         $order = $this->orderFactory->create()->load($orderId);
@@ -70,14 +71,17 @@ class Index extends  \Magento\Framework\App\Action\Action
             $this->logger->info("paymentStatus failed");
             $this->orderManagement->cancel($orderId);
            // $this->messageManager->addCritical('error.');
-            $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/failure/'));
+
+            $this->_redirect($this->urlBuilder->getBaseUrl());
         }
         if($paymentStatus=='success') {
             $this->logger->info("paymentStatus success");
             $paymentLastStatus= "Payment Created";
             $order->setData('paymentLastStatus', $paymentLastStatus );
+
             $order->save();
-            $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/failure'));
+
+            return  $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/success/'));
         }
 
         if(isset($_POST)&& $paymentStatus!='failure'){
@@ -126,37 +130,52 @@ class Index extends  \Magento\Framework\App\Action\Action
             $response	= json_decode($result);
 
             $payload=$response->payload;
+            $this->logger->info("bodyArray = ".print_r($payload,true));
             foreach($payload as $body){
                 $bodyArray = (array)$body;
-
+                $this->logger->info("bodyArray = ".print_r($bodyArray,true));
                 if($bodyArray['newStatus']=="Created"){
                     $paymentLastStatus= "Created";
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
                 }
                 if($bodyArray['newStatus']=="Confirmed"){
                     $paymentLastStatus= "Confirmed";
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
 
                 }
                 if($bodyArray['newStatus']=="Committed"){
                     $paymentLastStatus= "Committed";
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
                 }
                 if($bodyArray['newStatus']=="Completed"){
                     $paymentLastStatus= "Completed";
                     $order->setState("processing")->setStatus("processing");
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
+                    return  $this->_redirect($this->urlBuilder->getUrl('jumia/invoice/')."?orderid=".$orderId);
                 }
                 if($bodyArray['newStatus']=="Failed"){
                     $paymentLastStatus= "Failed";
                     $this->orderManagement->cancel($orderId);
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
                 }
                 if($bodyArray['newStatus']=="cancelled"){
                     $paymentLastStatus= "cancelled";
                     $this->orderManagement->cancel($orderId);
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
                 }
                 if($bodyArray['newStatus']=="Expired"){
                     $paymentLastStatus= "Expired";
                     $this->orderManagement->cancel($orderId);
+                    $order->setData('paymentLastStatus', $paymentLastStatus );
+                    $order->save();
                 }
-                $order->setData('paymentLastStatus', $paymentLastStatus );
-                $order->save();
+
             }
 
 
