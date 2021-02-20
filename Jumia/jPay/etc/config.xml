@@ -13,6 +13,7 @@
                 <model>Jumia\jPay\Model\JumiaPaymentMethod</model>
                 <order_status>pending</order_status>
                 <title>Jumia Pay</title>
+
 			</jumia>
           
         </payment>

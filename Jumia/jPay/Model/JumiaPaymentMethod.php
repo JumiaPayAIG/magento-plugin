@@ -24,17 +24,17 @@ class JumiaPaymentMethod extends \Magento\Payment\Model\Method\AbstractMethod
 	   return \Magento\Framework\App\ObjectManager::getInstance()
 							->get('Magento\Framework\UrlInterface')->getUrl("jumia/redirect");
    }
-//    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
-//    {
-//       // some code
-////        $transactionId = $payment->getParentTransactionId();
-////        $payment
-////            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
-////            ->setParentTransactionId($transactionId)
-////            ->setIsTransactionClosed(1)
-////            ->setShouldCloseParentTransaction(1);
-//
-//        return $this;
-//    }
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+       // some code
+        $transactionId = $payment->getParentTransactionId();
+        $payment
+            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
+            ->setParentTransactionId($transactionId)
+            ->setIsTransactionClosed(1)
+            ->setShouldCloseParentTransaction(1);
+
+        return $this;
+    }
 }
 

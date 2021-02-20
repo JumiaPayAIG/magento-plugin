@@ -3,4 +3,7 @@
     <event name="order_cancel_after">
         <observer name="order_cancel_after" instance="Jumia\jPay\Model\Observer\CancelOrder" shared="false" />
     </event>
+    <event name="sales_order_payment_refund">
+        <observer name="sales_order_payment_refund" instance="Jumia\jPay\Model\Observer\RefundOrder" shared="false" />
+    </event>
 </config>

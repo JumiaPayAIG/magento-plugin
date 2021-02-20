@@ -43,6 +43,7 @@ class Index extends Action
         $order = $this->orderRepository->get($orderId);
         if ($order->canInvoice()) {
             $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
             $invoice->register();
             $invoice->pay()->save();
             $transactionSave = $this->transaction->addObject(

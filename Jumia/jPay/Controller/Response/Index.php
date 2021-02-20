@@ -81,7 +81,7 @@ class Index extends  \Magento\Framework\App\Action\Action
 
             $order->save();
 
-            return  $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/success/'));
+            $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/success/'));
         }
 
         if(isset($_POST)&& $paymentStatus!='failure'){
@@ -130,10 +130,10 @@ class Index extends  \Magento\Framework\App\Action\Action
             $response	= json_decode($result);
 
             $payload=$response->payload;
-            $this->logger->info("bodyArray = ".print_r($payload,true));
+
             foreach($payload as $body){
                 $bodyArray = (array)$body;
-                $this->logger->info("bodyArray = ".print_r($bodyArray,true));
+
                 if($bodyArray['newStatus']=="Created"){
                     $paymentLastStatus= "Created";
                     $order->setData('paymentLastStatus', $paymentLastStatus );
@@ -154,8 +154,9 @@ class Index extends  \Magento\Framework\App\Action\Action
                     $paymentLastStatus= "Completed";
                     $order->setState("processing")->setStatus("processing");
                     $order->setData('paymentLastStatus', $paymentLastStatus );
-                    $order->save();
-                    return  $this->_redirect($this->urlBuilder->getUrl('jumia/invoice/')."?orderid=".$orderId);
+                    return $this->_redirect($this->urlBuilder->getUrl('jumia/invoice/')."?orderid=".$orderId);
+
+
                 }
                 if($bodyArray['newStatus']=="Failed"){
                     $paymentLastStatus= "Failed";
