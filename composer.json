@@ -1,0 +1,8 @@
+{
+	"name": "JumiaPay/magento"
+	,"version": "1.0.0"
+	,"description": "JumiaPay Magento Integration"
+	,"type": "magento2-module"
+	,"license": "MIT"
+	,"autoload": {"files": ["registration.php"], "psr-4": {"Dfe\\Stripe\\": ""}}
+}
