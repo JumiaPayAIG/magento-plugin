@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<config>
-<!-- event name  -->
-    <event name="sales_order_invoice_pay">
-        <!-- observer  name -->
-        <observer name="webpos_sales_order_invoice_pay" instance="Jumia\jPay\Model\Observer\CreateSalesOrderInvoicePay" />
-    </event>
-</config>
