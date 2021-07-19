@@ -147,7 +147,6 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
             "priceCurrency" => $shop_currency,
             "purchaseReturnUrl" => $this->storeManager->getStore()->getBaseUrl() . $this->config->getReturnUrl(). '?orderId='.$order->getRealOrderId(),
             "purchaseCallbackUrl" => $this->storeManager->getStore()->getBaseUrl() . 'jpay/payment/ipn?orderId='.$order->getRealOrderId(),
-            //'backUrl' => $this->storeManager->getStore()->getBaseUrl() . $this->config->getBackUrl(),
             "shippingAddress" => array(
                 "addressLine1" => $shippingStreet[0],
                 "addressLine2" => "Yaba",
@@ -181,5 +180,18 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         ];
 
         return ['json' => json_encode($data), 'merchantReferenceId' => $merchantReferenceId];
+    }
+
+
+    public function setOrderState($order, $state, $status, $comment){
+        /* Set the state of the order. */
+        $order->setData('state', $state);
+        $order->setStatus($status);
+
+        /* Add history comment. */
+        $history = $order->addStatusToHistory($status, $comment, /*isCustomerNotified*/FALSE);
+
+        /* Save changes. */
+        $order->save();
     }
 }

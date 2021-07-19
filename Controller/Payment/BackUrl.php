@@ -15,7 +15,7 @@ class BackUrl extends Action {
 
     /** @var \Jpay\Payments\Logger\Logger */
     private $log;
-    /** @var \Jpay\Payments\Helper\Payment */
+    /** @var \Jpay\Payments\Helper\JumiaPay */
     private $helper;
     /** @var \Magento\Framework\Message\ManagerInterface */
     protected $messageManager;
@@ -29,7 +29,7 @@ class BackUrl extends Action {
      * @param \Jpay\Payments\Helper\Payment $helper
      */
     public function __construct( \Jpay\Payments\Logger\Logger $jpayLogger
-        , \Jpay\Payments\Helper\Payment $helper
+        , \Jpay\Payments\Helper\JumiaPay $helper
         , \Magento\Framework\Message\ManagerInterface $messageManager
         , \Magento\Framework\App\Action\Context $context)
     {
