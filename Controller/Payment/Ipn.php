@@ -17,7 +17,7 @@ class Ipn extends Action {
   private $config;
   /** @var \Jpay\Payments\Logger\Logger */
   private $log;
-  /**  @var \Jpay\Payments\Helper\Payment */
+  /**  @var \Jpay\Payments\Helper\JumiaPay */
   private $helper;
 
 
@@ -32,7 +32,7 @@ class Ipn extends Action {
   public function __construct( \Magento\Framework\App\Action\Context $context
                              , \Jpay\Payments\Logger\Logger $jpayLogger
                              , \Jpay\Payments\Model\Config $config
-                             , \Jpay\Payments\Helper\Payment $helper)
+                             , \Jpay\Payments\Helper\JumiaPay $helper)
   {
     $this->log = $jpayLogger;
     $this->config = $config;
@@ -62,8 +62,9 @@ class Ipn extends Action {
     /* Update the status. */
     $statusUpdate = $this->helper->handleCallback($order, $JsonDecodeBody[0]['newStatus']);
 
-    if ($statusUpdate == true) {
-        $_response->setContents('OK');
+    if ($statusUpdate == false) {
+        $_response->setHttpResponseCode(400);
+        $_response->setContents('NOK');
         return $_response;
     }
 

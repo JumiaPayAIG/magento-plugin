@@ -17,7 +17,7 @@ use Magento\Sales\Model\Order;
 class Jpay extends \Magento\Payment\Model\Method\AbstractMethod {
   const METHOD_CODE = 'jpay';
 
-  /** @var \Jpay\Payments\Helper\Payment */
+  /** @var \Jpay\Payments\Helper\JumiaPay */
   private $helper;
   /** @var \Jpay\Payments\Logger\Logger */
   private $log;
@@ -41,7 +41,7 @@ class Jpay extends \Magento\Payment\Model\Method\AbstractMethod {
 
   /**
    * Constructor
-   * @param \Jpay\Payments\Helper\Payment $helper
+   * @param \Jpay\Payments\Helper\JumiaPay $helper
    * @param \Jpay\Payments\Logger\Logger $jpayLogger
    * @param \Magento\Framework\Model\Context $context
    * @param \Magento\Framework\Registry $registry
@@ -55,7 +55,7 @@ class Jpay extends \Magento\Payment\Model\Method\AbstractMethod {
    * @param array $data
    * @SuppressWarnings(PHPMD.ExcessiveParameterList)
    */
-  public function __construct( \Jpay\Payments\Helper\Payment $helper
+  public function __construct( \Jpay\Payments\Helper\JumiaPay $helper
                              , \Jpay\Payments\Logger\Logger $jpayLogger
                              , \Jpay\Payments\Model\Config $config
                              , \Magento\Framework\Model\Context $context
@@ -161,48 +161,7 @@ class Jpay extends \Magento\Payment\Model\Method\AbstractMethod {
           throw new \Magento\Framework\Validator\Exception($message);
       }
 
-
-      $merchantReferenceId= "R".time().$order->getRealOrderId();
-
-      $body = [
-          "shopConfig" => $this->config->getShopKey(),
-          "refundAmount" => $amount,
-          "refundCurrency" => $order->getOrderCurrencyCode(),
-          "description" => "Refund for order #".$order->getExtOrderId(),
-          "purchaseReferenceId" => $order->getExtOrderId(),
-          "referenceId"=> $merchantReferenceId
-      ];
-
-      $headers = [
-          'apikey: '.$this->config->getPayApiKey(),
-          "Content-type: application/json"
-      ];
-
-      $endpoint = $this->config->getHost() . '/merchant/refund';
-
-      $curl = curl_init($endpoint);
-
-      curl_setopt($curl, CURLOPT_HEADER, false);
-      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_POST, true);
-      curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body));
-      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //curl error SSL certificate problem, verify that the CA cert is OK
-
-      $result		= curl_exec($curl);
-      $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response	= json_decode($result, true);
-
-
-      if ($httpcode != 200) {
-          if (isset($response['payload'][0]['description'])) {
-              $this->messageManager->addErrorMessage($response['payload'][0]['description']);
-              throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-          }
-
-          $this->messageManager->addErrorMessage("Error Conecting to JumiaPay");
-          throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
-      }
+      $this->helper->createRefund($order, $amount);
 
       return $this;
   }

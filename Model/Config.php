@@ -89,11 +89,15 @@ class Config{
         }
   }
 
-  /**
-   * Function that extracts the value of the "url"
-   *  depending of the "liveMode" value.
-   */
-  public function getApiHost(){
+  public function getReturnUrl(){
+    return 'jpay/payment/backurl';
+  }
+
+  public function getCallBackUrl(){
+    return 'jpay/payment/ipn';
+  }
+
+  protected function getApiHost(){
     if(1 == $this->getLiveMode()){
       return $this->live_host_name;
     } else {
@@ -101,10 +105,4 @@ class Config{
     }
   }
 
-  /**
-   * Function that returns the backUrl.
-   */
-  public function getReturnUrl(){
-    return 'jpay/payment/backurl';
-  }
 }

@@ -45,17 +45,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
      * @param status: The status to be set to the order.
      * @param comment: The comment to add to that status change.
      */
-    private function setOrderState($order, $state, $status, $comment){
-        /* Set the state of the order. */
-        $order->setData('state', $state);
-        $order->setStatus($status);
-
-        /* Add history comment. */
-        $history = $order->addStatusToHistory($status, $comment, /*isCustomerNotified*/FALSE);
-
-        /* Save changes. */
-        $order->save();
-    }
     /************************** Inner functions END **************************/
 
 
@@ -177,34 +166,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
      * @return bool(FALSE)     - If server status in: [COMPLETE_FAIL, THREE_D_PENDING]
      *         bool(TRUE)      - If server status in: [IN_PROGRESS, COMPLETE_OK]
      */
-    public function handleReturnUrl($purchase, $serverStatus){
-        switch ($serverStatus) {
-        case 'success':
-            /* Set order status. */
-            $this->setOrderState( $purchase
-                , Order::STATE_PENDING_PAYMENT
-                , Order::STATE_PENDING_PAYMENT
-                , __(' Order #%1 as payment processing', $purchase->getIncrementId()));
-
-            return TRUE;
-            break;
-
-        case 'failure':
-            /* Set order status. */
-            $this->setOrderState( $purchase
-                , Order::STATE_CANCELED
-                , Order::STATE_CANCELED
-                , __(' Order #%1 canceled as payment failed', $purchase->getIncrementId()));
-
-            return FALSE;
-            break;
-
-        default:
-            $this->log->error(__FUNCTION__ . __(' [RESPONSE-ERROR]: Wrong status: ') . $serverStatus);
-            return FALSE;
-            break;
-        }
-    }
 
 
     /**
@@ -217,50 +178,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
      * @return bool(FALSE)     - If server status in: [COMPLETE_FAIL, CANCEL_OK, VOID_OK, CHARGE_BACK, THREE_D_PENDING]
      *         bool(TRUE)      - If server status in: [REFUND_OK, IN_PROGRESS, COMPLETE_OK]
      */
-    public function handleCallback($purchase, $serverStatus){
-        if ($purchase->getStatus() == Order::STATE_PENDING_PAYMENT) {
-            switch ($serverStatus) {
-            case "Created":
-            case "Pending":
-            case "Committed":
-                $this->setOrderState( $purchase
-                    , Order::STATE_PENDING_PAYMENT
-                    , Order::STATE_PENDING_PAYMENT
-                    , __(' Order #%1 as payment processing', $purchase->getIncrementId()));
-                return FALSE;
-                break;
-            case "Failed":
-            case "Expired":
-                $this->setOrderState( $purchase
-                    , Order::STATE_CANCELED
-                    , Order::STATE_CANCELED
-                    , __(' Order #%1 as payment failed', $purchase->getIncrementId()));
-                return FALSE;
-                break;
-            case "Cancelled":
-                $this->setOrderState( $purchase
-                    , Order::STATE_CANCELED
-                    , Order::STATE_CANCELED
-                    , __(' Order #%1 as payment cancelled', $purchase->getIncrementId()));
-                return FALSE;
-                break;
-            case "Completed":
-                $this->setOrderState( $purchase
-                    , Order::STATE_PROCESSING
-                    , Order::STATE_PROCESSING
-                    , __(' Order #%1 as payment completed', $purchase->getIncrementId()));
-
-                $this->addOrderTransaction($purchase->getRealOrderId(), $purchase->getExtOrderId());
-                $this->addPurchaseInvoice($purchase, $purchase->getExtOrderId());
-                return TRUE;
-                break;
-            default:
-                $this->log->error(__FUNCTION__ . __(' [RESPONSE-ERROR]: Wrong status: ') . $serverStatus);
-                return FALSE;
-                break;
-            }
-        }
-    }
 
 
     /**

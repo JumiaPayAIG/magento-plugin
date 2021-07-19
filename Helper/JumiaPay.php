@@ -20,6 +20,10 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
     protected $paymentService;
 
+    protected $refundService;
+
+    protected $jumiaPayClient;
+
     protected $config;
 
     protected $messageManager;
@@ -39,7 +43,9 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
     public function __construct(  \Jpay\Payments\Model\Config $config
         ,\Jpay\Payments\Logger\Logger $jpayLogger
         , \Jpay\Payments\Helper\Purchase $purchase
+        , \Jpay\Payments\Helper\Client\JumiaPayClient $client
         , \Jpay\Payments\Helper\Payment $payment
+        , \Jpay\Payments\Helper\Refund $refund
         , \Magento\Framework\App\Helper\Context $context
         , \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
@@ -47,6 +53,8 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
         $this->log = $jpayLogger;
         $this->purchaseService = $purchase;
         $this->paymentService = $payment;
+        $this->refundService = $refund;
+        $this->jumiaPayClient = $client;
         $this->config = $config;
         $this->messageManager = $messageManager;
     }
@@ -57,15 +65,98 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $headers = $this->createHeaders();
 
-        $checkoutUrl = $this->makeCreatePurchaseRequest($endpoint, $headers, $data['json']);
+        $checkoutUrl = $this->jumiaPayClient->makeCreatePurchaseRequest($endpoint, $headers, $data['json']);
 
         return $checkoutUrl;
     }
 
-    public function handleCallback($orderId, $callbackRequest) {
-        $order = $this->helper->getOrder($orderId);
+    public function createRefund($order, $amount) {
+        $data = $this->refundService->createRefundRequest($order, $amount);
+        $endpoint = $this->config->getHost() . '/merchant/refund';
 
-        $statusUpdate = $this->paymentService->updateStatus_purchase_IPN($order, $decrypted['transactionId'], $decrypted['transactionStatus']);
+        $headers = $this->createHeaders();
+
+        $this->jumiaPayClient->makeRefundRequest($endpoint, $headers, $data['json']);
+    }
+
+    public function getOrder($orderId) {
+        return $this->paymentService->getOrder($orderId);
+    }
+
+    public function handleReturnUrl($purchase, $serverStatus){
+        switch ($serverStatus) {
+        case 'success':
+            /* Set order status. */
+            $this->purchaseService->setOrderState( $purchase
+                , Order::STATE_PENDING_PAYMENT
+                , Order::STATE_PENDING_PAYMENT
+                , __(' Order #%1 as payment processing', $purchase->getIncrementId()));
+
+            return TRUE;
+            break;
+
+        case 'failure':
+            /* Set order status. */
+                $this->purchaseService->setOrderState( $purchase
+                , Order::STATE_CANCELED
+                , Order::STATE_CANCELED
+                , __(' Order #%1 canceled as payment failed', $purchase->getIncrementId()));
+
+            return FALSE;
+            break;
+
+        default:
+            $this->log->error(__FUNCTION__ . __(' [RESPONSE-ERROR]: Wrong status: ') . $serverStatus);
+            return FALSE;
+            break;
+        }
+    }
+
+    public function handleCallback($purchase, $serverStatus){
+        if ($purchase->getStatus() == Order::STATE_PENDING_PAYMENT) {
+            switch ($serverStatus) {
+            case "Created":
+            case "Pending":
+            case "Committed":
+                $this->purchaseService->setOrderState( $purchase
+                    , Order::STATE_PENDING_PAYMENT
+                    , Order::STATE_PENDING_PAYMENT
+                    , __(' Order #%1 as payment processing', $purchase->getIncrementId()));
+                return TRUE;
+                break;
+            case "Failed":
+            case "Expired":
+                $this->purchaseService->setOrderState( $purchase
+                    , Order::STATE_CANCELED
+                    , Order::STATE_CANCELED
+                    , __(' Order #%1 as payment failed', $purchase->getIncrementId()));
+                return TRUE;
+                break;
+            case "Cancelled":
+                $this->purchaseService->setOrderState( $purchase
+                    , Order::STATE_CANCELED
+                    , Order::STATE_CANCELED
+                    , __(' Order #%1 as payment cancelled', $purchase->getIncrementId()));
+                return TRUE;
+                break;
+            case "Completed":
+                $this->purchaseService->setOrderState( $purchase
+                    , Order::STATE_PROCESSING
+                    , Order::STATE_PROCESSING
+                    , __(' Order #%1 as payment completed', $purchase->getIncrementId()));
+
+                $this->paymentService->addOrderTransaction($purchase->getRealOrderId(), $purchase->getExtOrderId());
+                $this->paymentService->addPurchaseInvoice($purchase, $purchase->getExtOrderId());
+                return TRUE;
+                break;
+            default:
+                $this->log->error(__FUNCTION__ . __(' [RESPONSE-ERROR]: Wrong status: ') . $serverStatus);
+                return FALSE;
+                break;
+            }
+        }
+
+        return FALSE;
     }
 
     private function createHeaders() {
@@ -73,34 +164,5 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
             'apikey: '.$this->config->getPayApiKey(),
             "Content-type: application/json"
         ];
-    }
-
-    private function makeCreatePurchaseRequest($endpoint, $headers, $body) {
-
-        $curl = curl_init($endpoint);
-
-        curl_setopt($curl, CURLOPT_HEADER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //curl error SSL certificate problem, verify that the CA cert is OK
-
-        $result		= curl_exec($curl);
-        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $response	= json_decode($result, true);
-
-
-        if ($httpcode != 200) {
-            if (isset($response['payload'][0]['description'])) {
-                $this->messageManager->addErrorMessage($response['payload'][0]['description']);
-                throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-            }
-
-            $this->messageManager->addErrorMessage("Error Conecting to JumiaPay");
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
-        }
-
-        return $response['payload']['checkoutUrl'];
     }
 }
