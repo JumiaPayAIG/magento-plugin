@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Jpay_Payments default configuration
+ *
+ * @category    Jpay
+ * @package     Jpay_Payments
+ * @author      Jpay
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+  <default>
+    <payment>
+      <jpay>
+        <debug>0</debug>
+        <active>1</active>
+        <title>Jpay</title>
+        <model>Jpay\Payments\Model\Jpay</model>
+        <order_status>pending_payment</order_status>
+        <payment_action>authorize_capture</payment_action>
+        <live_mode>0</live_mode>
+        <sandbox_api_key/>
+        <sandbox_shop_key/>
+        <live_api_key/>
+        <live_shop_key/>
+        <country/>
+      </jpay>
+    </payment>
+  </default>
+</config>

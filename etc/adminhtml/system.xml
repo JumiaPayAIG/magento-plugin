@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Jpay_Payments admin configuration
+ *
+ * @category    Jpay
+ * @package     Jpay_Payments
+ * @author      Jpay
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+  <system>
+    <section id="payment">
+      <group id="jpay" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Jumia Pay</label>
+        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+
+        <field id="live_mode" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Live mode</label>
+          <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+
+        <field id="country" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Country</label>
+            <source_model>Jpay\Payments\Model\Country</source_model>
+        </field>
+
+        <field id="sandbox_api_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Sandbox Api Key</label>
+          <depends>
+            <field id="live_mode">0</field>
+          </depends>
+        </field>
+
+        <field id="sandbox_shop_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Sandbox Shop Key</label>
+          <depends>
+            <field id="live_mode">0</field>
+          </depends>
+        </field>
+
+        <field id="live_api_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Live Api Key</label>
+          <depends>
+            <field id="live_mode">1</field>
+          </depends>
+        </field>
+
+        <field id="live_shop_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Live Shop Key</label>
+          <depends>
+            <field id="live_mode">1</field>
+          </depends>
+        </field>
+      </group>
+    </section>
+  </system>
+</config>
