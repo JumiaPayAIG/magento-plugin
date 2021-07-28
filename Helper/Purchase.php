@@ -53,6 +53,15 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         $this->imageHelper = $imageHelper;
     }
 
+    public function setExtOrderId($orderId, $orderExtId) {
+        /* Get the details of the last order. */
+        $order = $this->orderRepository->get($orderId);
+
+        /* Set order status to payment pending. */
+        $order->addStatusToHistory($order->getStatus(), 'Order JumiaPay Purchase Id: '. $orderExtId);
+        $order->setData('purchaseId', $orderExtId );
+        $order->save();
+    }
 
     /**
      * Prepares the request data to be sent to the Jpay gateway
@@ -73,8 +82,8 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         /* Set order status to payment pending. */
         $order->setState(Order::STATE_PENDING_PAYMENT, true);
         $order->setStatus(Order::STATE_PENDING_PAYMENT);
-        $order->addStatusToHistory($order->getStatus(), 'Order External ID: '. $merchantReferenceId);
-        $order->setExtOrderId($merchantReferenceId);
+        $order->addStatusToHistory($order->getStatus(), 'Order JumiaPay Merchant Reference: '. $merchantReferenceId);
+        $order->setData('merchantReferenceId', $merchantReferenceId );
         $order->save();
 
         $billing = $order->getBillingAddress();

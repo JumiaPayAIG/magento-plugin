@@ -11,7 +11,7 @@ use Magento\Framework\App\ObjectManager;
  * @package Jpay\Payments\Helper
  * @author Jpay
  */
-class Refund extends \Magento\Framework\App\Helper\AbstractHelper {
+class Cancel extends \Magento\Framework\App\Helper\AbstractHelper {
     /** @var \Jpay\Payments\Model\Config */
     private $config;
     /** @var \Jpay\Payments\Logger\Logger */
@@ -34,17 +34,13 @@ class Refund extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
 
-    public function createRefundRequest($order, $amount) {
-            $merchantReferenceId= "R".time().$order->getRealOrderId();
+    public function createCancelRequest($order) {
 
             $data = [
                     "shopConfig" => $this->config->getShopKey(),
-                    "refundAmount" => $amount,
-                    "refundCurrency" => $order->getOrderCurrencyCode(),
-                    "description" => "Refund for order #".$order->getExtOrderId(),
-                    "purchaseReferenceId" => $order->getData('merchantReferenceId'),
-                    "referenceId"=> $merchantReferenceId
+                    "purchaseId"=> $order->getData('purchaseId')
             ];
-            return ['json' => json_encode($data), 'merchantReferenceId' => $merchantReferenceId];
+
+            return ['json' => json_encode($data)];
     }
 }

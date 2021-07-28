@@ -217,4 +217,26 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
         $invoice->setTransactionId($transactionId);
         $invoice->save();
     }
+
+    public function generateInvoice($order, $transactionId){
+            $this->log->info(__FUNCTION__ . __(': START'));
+
+            $invoice = $this->invoiceService->prepareInvoice($order);
+            if (!$invoice || !$invoice->getTotalQty()) {
+                    $this->log->info(__FUNCTION__ . __(': null qty'));
+                    return FALSE;
+            }
+
+            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+            $invoice->register();
+            $invoice->getOrder()->setCustomerNoteNotify(FALSE);
+            $invoice->getOrder()->setIsInProcess(TRUE);
+            $invoice->setTransactionId($transactionId);
+            $invoice->save();
+            $order->addStatusHistoryComment('Automatically INVOICED', FALSE);
+            $transactionSave = $this->transactionFactory->create()->addObject($invoice)->addObject($invoice->getOrder());
+            $transactionSave->save();
+
+            return TRUE;
+    }
 }

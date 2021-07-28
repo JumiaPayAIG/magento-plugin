@@ -22,6 +22,8 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
     protected $refundService;
 
+    protected $cancelService;
+
     protected $jumiaPayClient;
 
     protected $config;
@@ -46,6 +48,7 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
         , \Jpay\Payments\Helper\Client\JumiaPayClient $client
         , \Jpay\Payments\Helper\Payment $payment
         , \Jpay\Payments\Helper\Refund $refund
+        , \Jpay\Payments\Helper\Cancel $cancel
         , \Magento\Framework\App\Helper\Context $context
         , \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
@@ -54,6 +57,7 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
         $this->purchaseService = $purchase;
         $this->paymentService = $payment;
         $this->refundService = $refund;
+        $this->cancelService = $cancel;
         $this->jumiaPayClient = $client;
         $this->config = $config;
         $this->messageManager = $messageManager;
@@ -67,17 +71,33 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $checkoutUrl = $this->jumiaPayClient->makeCreatePurchaseRequest($endpoint, $headers, $data['json']);
 
-        return $checkoutUrl;
+        $this->purchaseService->setExtOrderId($orderId, $checkoutUrl['purchaseId']);
+
+        return $checkoutUrl['checkoutUrl'];
     }
 
     public function createRefund($order, $amount) {
         $data = $this->refundService->createRefundRequest($order, $amount);
+
+        $this->log->info(__FUNCTION__ . __('data: ') . $data['json']);
         $endpoint = $this->config->getHost() . '/merchant/refund';
 
         $headers = $this->createHeaders();
 
         $this->jumiaPayClient->makeRefundRequest($endpoint, $headers, $data['json']);
     }
+
+    public function cancelPayment($order) {
+        $data = $this->cancelService->createCancelRequest($order);
+
+        $this->log->info(__FUNCTION__ . __('data: ') . $data['json']);
+        $endpoint = $this->config->getHost() . '/merchant/cancel';
+
+        $headers = $this->createHeaders();
+
+        $this->jumiaPayClient->makeRefundRequest($endpoint, $headers, $data['json']);
+    }
+
 
     public function getOrder($orderId) {
         return $this->paymentService->getOrder($orderId);
@@ -145,8 +165,9 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
                     , Order::STATE_PROCESSING
                     , __(' Order #%1 as payment completed', $purchase->getIncrementId()));
 
-                $this->paymentService->addOrderTransaction($purchase->getRealOrderId(), $purchase->getExtOrderId());
-                $this->paymentService->addPurchaseInvoice($purchase, $purchase->getExtOrderId());
+                $this->paymentService->addOrderTransaction($purchase->getRealOrderId(), $purchase->getData('merchantReferenceId'));
+                $this->paymentService->generateInvoice($purchase, $purchase->getData('merchantReferenceId'));
+                $this->paymentService->addPurchaseInvoice($purchase, $purchase->getData('merchantReferenceId'));
                 return TRUE;
                 break;
             default:
@@ -155,6 +176,7 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
                 break;
             }
         }
+
 
         return FALSE;
     }

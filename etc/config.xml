@@ -17,7 +17,7 @@
         <title>Jpay</title>
         <model>Jpay\Payments\Model\Jpay</model>
         <order_status>pending_payment</order_status>
-        <payment_action>authorize_capture</payment_action>
+        <payment_action>authorize</payment_action>
         <live_mode>0</live_mode>
         <sandbox_api_key/>
         <sandbox_shop_key/>

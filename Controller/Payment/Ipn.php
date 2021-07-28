@@ -27,7 +27,7 @@ class Ipn extends Action {
    * @param \Magento\Framework\App\Action\Context $context
    * @param \Jpay\Payments\Logger\Logger $jpayLogger
    * @param \Jpay\Payments\Model\Config $config
-   * @param \Jpay\Payments\Helper\Payment $helper
+   * @param \Jpay\Payments\Helper\JumiaPay $helper
    */
   public function __construct( \Magento\Framework\App\Action\Context $context
                              , \Jpay\Payments\Logger\Logger $jpayLogger

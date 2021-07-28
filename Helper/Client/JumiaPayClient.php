@@ -64,7 +64,7 @@ class JumiaPayClient {
             throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
         }
 
-        return $response['payload']['checkoutUrl'];
+        return ['checkoutUrl' => $response['payload']['checkoutUrl'], 'purchaseId' => $response['payload']['purchaseId']];
     }
 
     public function makeRefundRequest($endpoint, $headers, $body) {
@@ -81,7 +81,6 @@ class JumiaPayClient {
       $result		= curl_exec($curl);
       $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
       $response	= json_decode($result, true);
-
 
       if ($httpcode != 200) {
           if (isset($response['payload'][0]['description'])) {
