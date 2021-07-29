@@ -12,21 +12,21 @@ use Magento\Checkout\Model\ConfigProviderInterface;
  * @codingStandardsIgnoreFile
  */
 class ConfigProvider implements ConfigProviderInterface {
-  /**
-   * @var Config
-   */
-  private $config;
+    /**
+     * @var Config
+     */
+    private $config;
 
-  public function __construct(Config $config) {
-    $this->config = $config;
-  }
+    public function __construct(Config $config) {
+        $this->config = $config;
+    }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfig() {
-    $outConfig = ['payment' => [\Jpay\Payments\Model\Jpay::METHOD_CODE => '']];
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfig() {
+        $outConfig = ['payment' => [\Jpay\Payments\Model\Jpay::METHOD_CODE => '']];
 
-    return $outConfig;
-  }
+        return $outConfig;
+    }
 }

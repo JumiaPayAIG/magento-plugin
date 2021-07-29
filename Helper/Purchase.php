@@ -5,13 +5,8 @@ namespace Jpay\Payments\Helper;
 use Magento\Sales\Model\Order;
 use Magento\Framework\App\ObjectManager;
 
-/**
- * Helper class for everything that has to do with payment
- *
- * @package Jpay\Payments\Helper
- * @author Jpay
- */
 class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
+
     /** @var \Jpay\Payments\Model\Config */
     private $config;
     /** @var \Jpay\Payments\Logger\Logger */
@@ -24,18 +19,6 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
     protected $_productRepositoryFactory;
     protected $imageHelper;
 
-    /**
-     * Constructor
-     *
-     * @param \Jpay\Payments\Model\Config $config
-     * @param \Jpay\Payments\Logger\Logger $jpayLogger
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory $transactions
-     */
     public function __construct( \Jpay\Payments\Model\Config $config
         , \Jpay\Payments\Logger\Logger $jpayLogger
         , \Magento\Framework\App\Helper\Context $context
@@ -63,15 +46,6 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         $order->save();
     }
 
-    /**
-     * Prepares the request data to be sent to the Jpay gateway
-     *
-     * @param orderId - The ID of the ordered to be payed.
-     * @param isGuest - Flag indicating if the order comes from an authenticated customer or a guest.
-     *
-     * @return array([key => value,]) - Representing the JSON to be sent to the payment gateway.
-     *         bool(FALSE)            - Otherwise
-     */
     public function createPurchaseRequest($orderId) {
         /* Get the details of the last order. */
         $order = $this->orderRepository->get($orderId);

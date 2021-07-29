@@ -5,12 +5,6 @@ namespace Jpay\Payments\Helper\Client;
 use Magento\Sales\Model\Order;
 use Magento\Framework\App\ObjectManager;
 
-/**
- * Helper class for everything that has to do with payment
- *
- * @package Jpay\Payments\Helper
- * @author Jpay
- */
 class JumiaPayClient {
 
     /** @var \Jpay\Payments\Logger\Logger */
@@ -18,18 +12,6 @@ class JumiaPayClient {
 
     protected $messageManager;
 
-    /**
-     * Constructor
-     *
-     * @param \Jpay\Payments\Model\Config $config
-     * @param \Jpay\Payments\Logger\Logger $jpayLogger
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory $transactions
-     */
     public function __construct(
         \Jpay\Payments\Logger\Logger $jpayLogger
         , \Magento\Framework\Message\ManagerInterface $messageManager
@@ -39,6 +21,8 @@ class JumiaPayClient {
     }
 
     public function makeCreatePurchaseRequest($endpoint, $headers, $body) {
+
+        $this->log->info(__FUNCTION__ . __('Start create purchase request'));
 
         $curl = curl_init($endpoint);
 
@@ -69,27 +53,29 @@ class JumiaPayClient {
 
     public function makeRefundRequest($endpoint, $headers, $body) {
 
-      $curl = curl_init($endpoint);
+        $this->log->info(__FUNCTION__ . __('Start refund / cancel request'));
 
-      curl_setopt($curl, CURLOPT_HEADER, false);
-      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_POST, true);
-      curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //curl error SSL certificate problem, verify that the CA cert is OK
+        $curl = curl_init($endpoint);
 
-      $result		= curl_exec($curl);
-      $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-      $response	= json_decode($result, true);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //curl error SSL certificate problem, verify that the CA cert is OK
 
-      if ($httpcode != 200) {
-          if (isset($response['payload'][0]['description'])) {
-              $this->messageManager->addErrorMessage($response['payload'][0]['description']);
-              throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-          }
+        $result		= curl_exec($curl);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $response	= json_decode($result, true);
 
-          $this->messageManager->addErrorMessage("Error Conecting to JumiaPay");
-          throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
-      }
+        if ($httpcode != 200) {
+            if (isset($response['payload'][0]['description'])) {
+                $this->messageManager->addErrorMessage($response['payload'][0]['description']);
+                throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
+            }
+
+            $this->messageManager->addErrorMessage("Error Conecting to JumiaPay");
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
+        }
     }
 }

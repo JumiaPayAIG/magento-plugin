@@ -9,12 +9,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order\Invoice;
 
-/**
- * Helper class for everything that has to do with payment
- *
- * @package Jpay\Payments\Helper
- * @author Jpay
- */
 class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     /** @var \Jpay\Payments\Model\Config */
     private $config;
@@ -36,31 +30,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     protected $_productRepositoryFactory;
     protected $imageHelper;
 
-    /************************** Inner functions START **************************/
-    /**
-     * Function that changes the state of an order and adds history comment.
-     *
-     * @param order: The purchase order to update.
-     * @param state: The state to be set to the order.
-     * @param status: The status to be set to the order.
-     * @param comment: The comment to add to that status change.
-     */
-    /************************** Inner functions END **************************/
-
-
-
-    /**
-     * Constructor
-     *
-     * @param \Jpay\Payments\Model\Config $config
-     * @param \Jpay\Payments\Logger\Logger $jpayLogger
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory $transactions
-     */
     public function __construct( \Jpay\Payments\Model\Config $config
         , \Jpay\Payments\Logger\Logger $jpayLogger
         , \Magento\Framework\App\Helper\Context $context
@@ -88,14 +57,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
 
-    /**
-     * Function that extracts an order.
-     *
-     * @param orderId: The ID of the order to extarct.
-     *
-     * @return Magento\Sales\Model\Order if found
-     *         NULL if not found
-     */
     public function getOrder($orderId){
         try {
             $order = $this->orderRepository->get($orderId);
@@ -106,16 +67,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
         return $order;
     }
 
-
-    /**
-     * Function that extracts an transaction.
-     *
-     * @param orderId: The ID of the order for which to extract the transaction.
-     * @param txnId: The txnId of the transaction to be extracted.
-     *
-     * @return Magento\Sales\Model\Order\Payment\Transaction if found
-     *         NULL if not found
-     */
     public function getTransaction($orderId, $txnId){
         $transaction = NULL;
 
@@ -129,63 +80,15 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
         return $transaction;
     }
 
-
-    /**
-     * Function that extracts a list of transactions for an order.
-     *
-     * @param orderId: The ID of the order for which to extarct
-     *                  the transactions list.
-     *
-     * @return List of Magento\Sales\Model\Order\Payment\Transaction
-     */
     public function getTransactions($orderId){
         return $this->transactions->create()->addOrderIdFilter($orderId)->getItems();
     }
 
 
-
-    /************************** Notification START **************************/
-    /**
-     * Get the `jsonRequest` parameter (order parameters as JSON and base64 encoded).
-     *
-     * @param orderData: Array containing the order parameters.
-     *
-     * @return string
-     */
     public function getJsonRequest(array $orderData) {
         return base64_encode(json_encode($orderData));
     }
 
-    /**
-     * Update the status of a purchase order according to the received server status.
-     *
-     * @param purchase: The purchase order for which to update the status.
-     * @param transactionId: The unique server transaction ID of the purchase.
-     * @param serverStatus: The status received from server.
-     *
-     * @return bool(FALSE)     - If server status in: [COMPLETE_FAIL, THREE_D_PENDING]
-     *         bool(TRUE)      - If server status in: [IN_PROGRESS, COMPLETE_OK]
-     */
-
-
-    /**
-     * Update the status of a purchase order according to the received server status.
-     *
-     * @param purchase: The purchase order for which to update the status.
-     * @param transactionId: The unique transaction ID of the order.
-     * @param serverStatus: The status received from server.
-     *
-     * @return bool(FALSE)     - If server status in: [COMPLETE_FAIL, CANCEL_OK, VOID_OK, CHARGE_BACK, THREE_D_PENDING]
-     *         bool(TRUE)      - If server status in: [REFUND_OK, IN_PROGRESS, COMPLETE_OK]
-     */
-
-
-    /**
-     * Function that adds a new transaction to the order.
-     *
-     * @param order: The order to which to add the transaction.
-     * @param serverResponse: Array containing the server decripted response.
-     */
     public function addOrderTransaction($orderId, $merchantReferenceId){
         $order = $this->orderRepository->get($orderId);
 
@@ -195,7 +98,7 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
         $payment->setLastTransId($merchantReferenceId);
         $payment->setParentTransactionId(NULL);
         $transaction = $payment->addTransaction(Transaction::TYPE_CAPTURE, null, TRUE, 'OK');
-       // $transaction->setIsClosed(FALSE);
+        // $transaction->setIsClosed(FALSE);
         $transaction->setCreatedAt(date("D M d, Y G:i"));
         $transaction->save();
         $payment->save();
@@ -205,12 +108,6 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
 
-    /**
-     * Function that adds a transaction to an invoice.
-     *
-     * @param order: The order that has the transaction and the invoice.
-     * @param transactionId: The ID of the transaction.
-     */
     public function addPurchaseInvoice($order, $transactionId){
         /* Add the transaction to the invoice. */
         $invoice = $order->getInvoiceCollection()->addAttributeToSort('created_at', 'DSC')->setPage(1, 1)->getFirstItem();
@@ -219,24 +116,24 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
     public function generateInvoice($order, $transactionId){
-            $this->log->info(__FUNCTION__ . __(': START'));
+        $this->log->info(__FUNCTION__ . __(': START'));
 
-            $invoice = $this->invoiceService->prepareInvoice($order);
-            if (!$invoice || !$invoice->getTotalQty()) {
-                    $this->log->info(__FUNCTION__ . __(': null qty'));
-                    return FALSE;
-            }
+        $invoice = $this->invoiceService->prepareInvoice($order);
+        if (!$invoice || !$invoice->getTotalQty()) {
+            $this->log->info(__FUNCTION__ . __(': null qty'));
+            return FALSE;
+        }
 
-            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
-            $invoice->register();
-            $invoice->getOrder()->setCustomerNoteNotify(FALSE);
-            $invoice->getOrder()->setIsInProcess(TRUE);
-            $invoice->setTransactionId($transactionId);
-            $invoice->save();
-            $order->addStatusHistoryComment('Automatically INVOICED', FALSE);
-            $transactionSave = $this->transactionFactory->create()->addObject($invoice)->addObject($invoice->getOrder());
-            $transactionSave->save();
+        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+        $invoice->register();
+        $invoice->getOrder()->setCustomerNoteNotify(FALSE);
+        $invoice->getOrder()->setIsInProcess(TRUE);
+        $invoice->setTransactionId($transactionId);
+        $invoice->save();
+        $order->addStatusHistoryComment('Automatically INVOICED', FALSE);
+        $transactionSave = $this->transactionFactory->create()->addObject($invoice)->addObject($invoice->getOrder());
+        $transactionSave->save();
 
-            return TRUE;
+        return TRUE;
     }
 }

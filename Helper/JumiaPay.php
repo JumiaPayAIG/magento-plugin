@@ -5,12 +5,6 @@ namespace Jpay\Payments\Helper;
 use Magento\Sales\Model\Order;
 use Magento\Framework\App\ObjectManager;
 
-/**
- * Helper class for everything that has to do with payment
- *
- * @package Jpay\Payments\Helper
- * @author Jpay
- */
 class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
     /** @var \Jpay\Payments\Logger\Logger */
@@ -30,18 +24,6 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
     protected $messageManager;
 
-    /**
-     * Constructor
-     *
-     * @param \Jpay\Payments\Model\Config $config
-     * @param \Jpay\Payments\Logger\Logger $jpayLogger
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
-     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
-     * @param \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory $transactions
-     */
     public function __construct(  \Jpay\Payments\Model\Config $config
         ,\Jpay\Payments\Logger\Logger $jpayLogger
         , \Jpay\Payments\Helper\Purchase $purchase
@@ -117,7 +99,7 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
         case 'failure':
             /* Set order status. */
-                $this->purchaseService->setOrderState( $purchase
+            $this->purchaseService->setOrderState( $purchase
                 , Order::STATE_CANCELED
                 , Order::STATE_CANCELED
                 , __(' Order #%1 canceled as payment failed', $purchase->getIncrementId()));

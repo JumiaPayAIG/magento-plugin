@@ -3,14 +3,7 @@
 namespace Jpay\Payments\Controller\Payment;
 
 use Magento\Framework\App\Action\Action;
-use Magento\Framework\Exception\PaymentException;
 
-/**
- * This controller handles the payment back URL
- *
- * @package Jpay\Payments\Controller\Checkout
- * @author Jpay
- */
 class BackUrl extends Action {
 
     /** @var \Jpay\Payments\Logger\Logger */
@@ -20,14 +13,6 @@ class BackUrl extends Action {
     /** @var \Magento\Framework\Message\ManagerInterface */
     protected $messageManager;
 
-    /**
-     * Constructor
-     *
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Jpay\Payments\Logger\Logger $jpayLogger
-     * @param \Jpay\Payments\Model\Config $config
-     * @param \Jpay\Payments\Helper\Payment $helper
-     */
     public function __construct( \Jpay\Payments\Logger\Logger $jpayLogger
         , \Jpay\Payments\Helper\JumiaPay $helper
         , \Magento\Framework\Message\ManagerInterface $messageManager
@@ -41,11 +26,6 @@ class BackUrl extends Action {
     }
 
 
-    /**
-     * Handle the back URL redirect from Jpay gateway
-     *
-     * @return \Magento\Framework\Controller\ResultInterface
-     */
     public function execute() {
         $this->log->info(__FUNCTION__ . __(' Process the backUrl response of the Jpay server'));
 
@@ -69,9 +49,11 @@ class BackUrl extends Action {
         $successPage = $this->helper->handleReturnUrl($order, $paymentStatus);
 
         if ($successPage) {
+            $this->log->info(__FUNCTION__ . __('Sucess payment on returnUrl'));
             $successPage = 'checkout/onepage/success';
             $this->_redirect($successPage, ['_secure' => TRUE]);
         } else {
+            $this->log->info(__FUNCTION__ . __('failed payment on returnUrl'));
             $this->messageManager->addErrorMessage(__(' The payment was cancelled'));
             $this->_redirect('checkout/onepage/failure', ['_secure' => TRUE]);
         }
