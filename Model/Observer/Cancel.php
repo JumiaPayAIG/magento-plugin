@@ -13,11 +13,9 @@ class Cancel implements ObserverInterface
     protected $logger;
 
     public function __construct(
-        \Magento\Framework\Message\ManagerInterface $messageManager,
         Logger $logger,
         \Jpay\Payments\Helper\JumiaPay $helper
     ) {
-        $this->messageManager = $messageManager;
         $this->logger = $logger;
         $this->helper = $helper;
     }
@@ -26,6 +24,7 @@ class Cancel implements ObserverInterface
         \Magento\Framework\Event\Observer $observer
     )
     {
+        $this->logger->info(__FUNCTION__);
         $order = $observer->getEvent()->getOrder();
         $this->helper->cancelPayment($order);
     }

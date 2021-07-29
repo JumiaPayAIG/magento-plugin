@@ -2,9 +2,6 @@
 
 namespace Jpay\Payments\Helper;
 
-use Magento\Sales\Model\Order;
-use Magento\Framework\App\ObjectManager;
-
 class Cancel extends \Magento\Framework\App\Helper\AbstractHelper {
 
     /** @var \Jpay\Payments\Model\Config */
@@ -24,7 +21,7 @@ class Cancel extends \Magento\Framework\App\Helper\AbstractHelper {
 
     public function createCancelRequest($order) {
 
-        $this->log->info(__FUNCTION__ . __('Start Cancel Request'));
+        $this->log->info(__FUNCTION__);
 
         $data = [
             "shopConfig" => $this->config->getShopKey(),

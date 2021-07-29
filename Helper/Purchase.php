@@ -7,16 +7,17 @@ use Magento\Framework\App\ObjectManager;
 
 class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
-    /** @var \Jpay\Payments\Model\Config */
-    private $config;
     /** @var \Jpay\Payments\Logger\Logger */
     private $log;
+
     /** @var \Magento\Store\Model\StoreManagerInterface: Store manager object */
     private $storeManager;
+
     /** @var \Magento\Sales\Api\OrderRepositoryInterface */
     private $orderRepository;
 
     protected $_productRepositoryFactory;
+
     protected $imageHelper;
 
     public function __construct( \Jpay\Payments\Model\Config $config
@@ -28,7 +29,6 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         , \Magento\Catalog\Helper\Image $imageHelper
     ) {
         parent::__construct($context);
-        $this->config = $config;
         $this->log = $jpayLogger;
         $this->storeManager = $storeManager;
         $this->orderRepository = $orderRepository;
@@ -37,6 +37,8 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
     public function setExtOrderId($orderId, $orderExtId) {
+        $this->log->info(__FUNCTION__);
+
         /* Get the details of the last order. */
         $order = $this->orderRepository->get($orderId);
 
@@ -167,6 +169,7 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
 
     public function setOrderState($order, $state, $status, $comment){
+        $this->log->info(__FUNCTION__);
         /* Set the state of the order. */
         $order->setData('state', $state);
         $order->setStatus($status);

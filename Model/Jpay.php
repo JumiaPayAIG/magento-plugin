@@ -3,7 +3,6 @@
 namespace Jpay\Payments\Model;
 
 use Magento\Framework\Exception\PaymentException;
-use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order;
 
 /**

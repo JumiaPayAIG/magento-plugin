@@ -10,12 +10,9 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order\Invoice;
 
 class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
-    /** @var \Jpay\Payments\Model\Config */
-    private $config;
+
     /** @var \Jpay\Payments\Logger\Logger */
     private $log;
-    /** @var \Magento\Store\Model\StoreManagerInterface: Store manager object */
-    private $storeManager;
     /** @var \Magento\Sales\Api\OrderRepositoryInterface */
     private $orderRepository;
     /** @var \Magento\Sales\Model\Service\InvoiceService */
@@ -24,40 +21,25 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     private $transactionFactory;
     /** @var \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory */
     private $transactions;
-    /** @var \Magento\Framework\App\ObjectManager */
-    private $objectManager;
 
-    protected $_productRepositoryFactory;
-    protected $imageHelper;
-
-    public function __construct( \Jpay\Payments\Model\Config $config
-        , \Jpay\Payments\Logger\Logger $jpayLogger
+    public function __construct( \Jpay\Payments\Logger\Logger $jpayLogger
         , \Magento\Framework\App\Helper\Context $context
-        , \Magento\Store\Model\StoreManagerInterface $storeManager
         , \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
         , \Magento\Sales\Model\Service\InvoiceService $invoiceService
         , \Magento\Framework\DB\TransactionFactory $transactionFactory
         , \Magento\Sales\Api\Data\TransactionSearchResultInterfaceFactory $transactions
-        , \Magento\Catalog\Api\ProductRepositoryInterfaceFactory $productRepositoryFactory
-        , \Magento\Catalog\Helper\Image $imageHelper
     ) {
         parent::__construct($context);
-        $this->config = $config;
         $this->log = $jpayLogger;
-        $this->storeManager = $storeManager;
         $this->orderRepository = $orderRepository;
         $this->invoiceService = $invoiceService;
         $this->transactionFactory = $transactionFactory;
         $this->transactions = $transactions;
-        $this->_productRepositoryFactory = $productRepositoryFactory;
-        $this->imageHelper = $imageHelper;
-
-
-        $this->objectManager = ObjectManager::getInstance();
     }
 
 
     public function getOrder($orderId){
+        $this->log->info(__FUNCTION__);
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
@@ -68,6 +50,7 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
     public function getTransaction($orderId, $txnId){
+        $this->log->info(__FUNCTION__);
         $transaction = NULL;
 
         foreach ($this->getTransactions($orderId) as $key => $_transaction) {
@@ -81,15 +64,13 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
     }
 
     public function getTransactions($orderId){
+        $this->log->info(__FUNCTION__);
         return $this->transactions->create()->addOrderIdFilter($orderId)->getItems();
     }
 
-
-    public function getJsonRequest(array $orderData) {
-        return base64_encode(json_encode($orderData));
-    }
-
     public function addOrderTransaction($orderId, $merchantReferenceId){
+        $this->log->info(__FUNCTION__);
+
         $order = $this->orderRepository->get($orderId);
 
         /* Save the payment transaction. */
@@ -109,6 +90,8 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
 
 
     public function addPurchaseInvoice($order, $transactionId){
+        $this->log->info(__FUNCTION__);
+
         /* Add the transaction to the invoice. */
         $invoice = $order->getInvoiceCollection()->addAttributeToSort('created_at', 'DSC')->setPage(1, 1)->getFirstItem();
         $invoice->setTransactionId($transactionId);

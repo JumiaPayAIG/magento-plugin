@@ -2,10 +2,8 @@
 
 namespace Jpay\Payments\Helper;
 
-use Magento\Sales\Model\Order;
-use Magento\Framework\App\ObjectManager;
-
 class Refund extends \Magento\Framework\App\Helper\AbstractHelper {
+
     /** @var \Jpay\Payments\Model\Config */
     private $config;
     /** @var \Jpay\Payments\Logger\Logger */
@@ -22,6 +20,9 @@ class Refund extends \Magento\Framework\App\Helper\AbstractHelper {
 
 
     public function createRefundRequest($order, $amount) {
+
+        $this->log->info(__FUNCTION__);
+
         $merchantReferenceId= "R".time().$order->getRealOrderId();
 
         $data = [
