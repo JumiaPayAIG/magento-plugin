@@ -7,6 +7,9 @@ use Magento\Framework\App\ObjectManager;
 
 class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
+
+    private $config;
+
     /** @var \Jpay\Payments\Logger\Logger */
     private $log;
 
@@ -29,6 +32,7 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         , \Magento\Catalog\Helper\Image $imageHelper
     ) {
         parent::__construct($context);
+        $this->config = $config;
         $this->log = $jpayLogger;
         $this->storeManager = $storeManager;
         $this->orderRepository = $orderRepository;
