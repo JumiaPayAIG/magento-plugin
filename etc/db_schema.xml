@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
-    <table name="jpay_sales_order" resource="sales" engine="innodb" comment="Sales Order">
+    <table name="sales_order" resource="sales" engine="innodb" comment="Sales Order">
         <column xsi:type="varchar" name="merchantReferenceId" nullable="true" length="32" comment="Order merchantReferenceId"/>
         <column xsi:type="varchar" name="purchaseId" nullable="true" length="255" comment="Order purchaseId"/>
     </table>

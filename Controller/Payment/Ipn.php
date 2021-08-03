@@ -53,6 +53,14 @@ class Ipn extends Action {
 
         $JsonDecodeBody = json_decode($bodyArray['transactionEvents'], true);
 
+        if ($order->getData('merchantReferenceId') != $JsonDecodeBody[0]['merchantReferenceId']) {
+            $this->log->error(__FUNCTION__ . ' Invalid merchantReferenceId on JumiaPay Callback');
+
+            $_response->setHttpResponseCode(400);
+            $_response->setContents('NOK');
+            return $_response;
+        }
+
         /* Update the status. */
         $statusUpdate = $this->helper->handleCallback($order, $JsonDecodeBody[0]['newStatus']);
 
