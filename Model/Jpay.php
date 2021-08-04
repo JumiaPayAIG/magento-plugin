@@ -27,11 +27,11 @@ class Jpay extends \Magento\Payment\Model\Method\AbstractMethod {
     protected $_isGateway = true;
     protected $_canAuthorize = true;
     protected $_canCapture = true;
-    protected $_canCapturePartial = true;
+    protected $_canCapturePartial = false;
     protected $_canRefund = true;
     protected $_canRefundInvoicePartial = true;
     protected $_canVoid = false;
-    protected $_canUseInternal = true;
+    protected $_canUseInternal = false;
     protected $_canUseCheckout = true;
     protected $_canFetchTransactionInfo = true;
     protected $_isInitializeNeeded = false;

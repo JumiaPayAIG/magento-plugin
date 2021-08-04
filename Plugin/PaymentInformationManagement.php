@@ -51,3 +51,4 @@ class PaymentInformationManagement {
 
         return $this->helper->createPurchase($orderId);
     }
+}

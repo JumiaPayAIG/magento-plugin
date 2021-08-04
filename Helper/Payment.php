@@ -78,6 +78,7 @@ class Payment extends \Magento\Framework\App\Helper\AbstractHelper {
         $payment->setTransactionId($merchantReferenceId);
         $payment->setLastTransId($merchantReferenceId);
         $payment->setParentTransactionId(NULL);
+
         $transaction = $payment->addTransaction(Transaction::TYPE_CAPTURE, null, TRUE, 'OK');
         // $transaction->setIsClosed(FALSE);
         $transaction->setCreatedAt(date("D M d, Y G:i"));
