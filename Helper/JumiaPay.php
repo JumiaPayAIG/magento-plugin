@@ -21,6 +21,8 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
     protected $config;
 
+
+
     public function __construct(  \Jpay\Payments\Model\Config $config
         ,\Jpay\Payments\Logger\Logger $jpayLogger
         , \Jpay\Payments\Helper\Purchase $purchase
@@ -45,10 +47,18 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $data = $this->purchaseService->createPurchaseRequest($orderId);
         $endpoint = $this->config->getHost() . '/merchant/create';
+
         $headers = $this->createHeaders();
 
-        $checkoutUrl = $this->jumiaPayClient->makeCreatePurchaseRequest($endpoint, $headers, $data['json']);
+        try {
+                $checkoutUrl = $this->jumiaPayClient->makeCreatePurchaseRequest($endpoint, $headers, $data['json']);
+        } catch(\Magento\Framework\Validator\Exception $e) {
+                $this->purchaseService->setOrderStateByID($orderId, Order::STATE_CANCELED, Order::STATE_CANCELED);
+                throw $e;
+        }
+
         $this->purchaseService->setExtOrderId($orderId, $checkoutUrl['purchaseId']);
+        $this->purchaseService->setOrderStateByID($orderId, Order::STATE_PENDING_PAYMENT, Order::STATE_PENDING_PAYMENT);
 
         return $checkoutUrl['checkoutUrl'];
     }

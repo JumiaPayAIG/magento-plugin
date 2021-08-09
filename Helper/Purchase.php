@@ -59,10 +59,10 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $merchantReferenceId= time().$order->getRealOrderId();
 
-        /* Set order status to payment pending. */
-        $order->setState(Order::STATE_PENDING_PAYMENT, true);
-        $order->setStatus(Order::STATE_PENDING_PAYMENT);
+        $order->setState(Order::STATE_NEW, true);
+        $order->setStatus(Order::STATE_NEW);
         $order->addStatusToHistory($order->getStatus(), 'Order JumiaPay Merchant Reference: '. $merchantReferenceId);
+        /* Set order status to payment pending. */
         $order->setData('merchantReferenceId', $merchantReferenceId );
         $order->save();
 
@@ -171,6 +171,17 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
         return ['json' => json_encode($data), 'merchantReferenceId' => $merchantReferenceId];
     }
 
+    public function setOrderStateByID($orderId, $state, $status){
+        $order = $this->orderRepository->get($orderId);
+
+        $this->log->info(__FUNCTION__);
+
+        $order->setState($state, true);
+        $order->setStatus($status);
+
+        /* Save changes. */
+        $order->save();
+    }
 
     public function setOrderState($order, $state, $status, $comment){
         $this->log->info(__FUNCTION__);

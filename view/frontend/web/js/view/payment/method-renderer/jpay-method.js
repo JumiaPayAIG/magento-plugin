@@ -52,10 +52,12 @@ define(
           this.getPlaceOrderDeferredObject()
               .fail(
                 function () {
+                  console.log("failure");
                   self.isPlaceOrderActionAllowed(true);
                 }
               ).done(
                 function (response) {
+                  console.log("success");
                   console.log(response);
                   window.location.replace(response);
                 }

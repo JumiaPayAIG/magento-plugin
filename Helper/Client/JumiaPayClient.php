@@ -38,11 +38,9 @@ class JumiaPayClient {
 
         if ($httpcode != 200) {
             if (isset($response['payload'][0]['description'])) {
-                $this->messageManager->addErrorMessage($response['payload'][0]['description']);
                 throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
             }
 
-            $this->messageManager->addErrorMessage("Error Conecting to JumiaPay");
             throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
         }
 

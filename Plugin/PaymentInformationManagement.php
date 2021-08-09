@@ -49,6 +49,19 @@ class PaymentInformationManagement {
 
         $this->log->info(__FUNCTION__ . __(" Processing order #%1", $orderId));
 
-        return $this->helper->createPurchase($orderId);
+        try {
+                $checkoutUrl = $this->helper->createPurchase($orderId);
+        } catch(\Magento\Framework\Validator\Exception $e) {
+                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                $_checkoutSession = $objectManager->create('\Magento\Checkout\Model\Session');
+                $_checkoutSession->restoreQuote();
+
+                throw new \Magento\Framework\Exception\CouldNotSaveException(
+                        __($e->getMessage()),
+                $e
+                );
+        }
+
+        return $checkoutUrl;
     }
 }

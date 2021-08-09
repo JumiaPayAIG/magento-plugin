@@ -15,8 +15,6 @@ class GuestPaymentInformationManagement {
     /** @var \Jpay\Payments\Helper\JumiaPay */
     private $helper;
 
-    protected $messageManager;
-
     /**
      * Constructor
      *
@@ -25,12 +23,10 @@ class GuestPaymentInformationManagement {
      */
     public function __construct(
         \Jpay\Payments\Logger\Logger $jpayLogger,
-        \Jpay\Payments\Helper\JumiaPay $helper,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Jpay\Payments\Helper\JumiaPay $helper
     ) {
         $this->log = $jpayLogger;
         $this->helper = $helper;
-        $this->messageManager = $messageManager;
     }
 
 
@@ -58,6 +54,19 @@ class GuestPaymentInformationManagement {
 
         $this->log->info(__FUNCTION__ . __(" Processing order #%1", $orderId));
 
-        return $this->helper->createPurchase($orderId);
+        try {
+                $checkoutUrl = $this->helper->createPurchase($orderId);
+        } catch(\Magento\Framework\Validator\Exception $e) {
+                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                $_checkoutSession = $objectManager->create('\Magento\Checkout\Model\Session');
+                $_checkoutSession->restoreQuote();
+
+                throw new \Magento\Framework\Exception\CouldNotSaveException(
+                        __($e->getMessage()),
+                $e
+                );
+        }
+
+        return $checkoutUrl;
     }
 }
