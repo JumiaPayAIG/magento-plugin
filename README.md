@@ -13,8 +13,8 @@ Install
 2. Enter following commands to install module:
 
     ```bash
-    composer config repositories.jumiapay git https://github.com/JumiaPayAIG/magento-plugin
-    composer require JumiaPayAIG/magento-plugin:dev-master
+    composer config repositories.jumiapay vcs https://github.com/JumiaPayAIG/magento-plugin
+    composer require jpay/module-payments
     ```
    Wait while dependencies are updated.
 
