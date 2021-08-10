@@ -1,5 +1,5 @@
 {
-    "name": "jpay/module-payments",
+    "name": "jpay/payments",
     "description": "Official Jumia Pay Payments Extension for Magento2",
     "type": "magento2-module",
     "version": "1.0.2",
