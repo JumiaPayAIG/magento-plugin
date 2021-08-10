@@ -6,10 +6,6 @@ The official JumiaPay extension for Magento 2.
 Install
 =======
 
-### Magento Marketplace
-
-TBD
-
 ### Manually
 
 1. Go to Magento 2 root folder
