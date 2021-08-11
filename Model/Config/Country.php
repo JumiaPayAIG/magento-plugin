@@ -3,17 +3,15 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-namespace Jpay\Payments\Model;
+namespace Jpay\Payments\Model\Config;
 
-use Magento\Framework\Option\ArrayInterface;
-
-class Country implements ArrayInterface
+class Country
 {
     public function toOptionArray()
     {
         return [
             ['value' => '', 'label' => __('Please Select Country')],
-            ['value' => 'eg', 'label' => __('Egypt')],
+            ['value' => 'eg', 'label' => __('Egypt')]
 /*            ['value' => 'gh', 'label' => __('Ghana')],
             ['value' => 'ci', 'label' => __('Ivory Coast')],
             ['value' => 'ke', 'label' => __('Kenya')],
