@@ -47,21 +47,23 @@ class PaymentInformationManagement {
         /* Execute the normal Magento 2 method and save the order ID. */
         $orderId = $proceed($cartId, $paymentMethod, $billingAddress);
 
-        $this->log->info(__FUNCTION__ . __(" Processing order #%1", $orderId));
+        if ($paymentMethod->getMethod() == \Jpay\Payments\Model\JPay::METHOD_CODE){
+                $this->log->info(__FUNCTION__ . __(" Processing order #%1", $orderId));
 
-        try {
-                $checkoutUrl = $this->helper->createPurchase($orderId);
-        } catch(\Magento\Framework\Validator\Exception $e) {
-                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-                $_checkoutSession = $objectManager->create('\Magento\Checkout\Model\Session');
-                $_checkoutSession->restoreQuote();
+                try {
+                        $checkoutUrl = $this->helper->createPurchase($orderId);
+                } catch(\Magento\Framework\Validator\Exception $e) {
+                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                        $_checkoutSession = $objectManager->create('\Magento\Checkout\Model\Session');
+                        $_checkoutSession->restoreQuote();
 
-                throw new \Magento\Framework\Exception\CouldNotSaveException(
-                        __($e->getMessage()),
-                $e
-                );
+                        throw new \Magento\Framework\Exception\CouldNotSaveException(
+                                __($e->getMessage()),
+                                $e
+                        );
+                }
+
+                return $checkoutUrl;
         }
-
-        return $checkoutUrl;
     }
 }
