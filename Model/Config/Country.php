@@ -11,14 +11,16 @@ class Country
     {
         return [
             ['value' => '', 'label' => __('Please Select Country')],
-            ['value' => 'eg', 'label' => __('Egypt')]
-/*            ['value' => 'gh', 'label' => __('Ghana')],
-            ['value' => 'ci', 'label' => __('Ivory Coast')],
-            ['value' => 'ke', 'label' => __('Kenya')],
-            ['value' => 'ma', 'label' => __('Morocco')],
             ['value' => 'ng', 'label' => __('Nigeria')],
+            ['value' => 'eg', 'label' => __('Egypt')],
+            ['value' => 'ke', 'label' => __('Kenya')],
+            ['value' => 'ci', 'label' => __("Côte d'Ivoire")],
+            ['value' => 'ma', 'label' => __('Morocco')],
             ['value' => 'tn', 'label' => __('Tunisia')],
-            ['value' => 'ug', 'label' => __('Uganda')], */
+            ['value' => 'ug', 'label' => __('Uganda')],
+            ['value' => 'gh', 'label' => __('Ghana')],
+            ['value' => 'dz', 'label' => __('Algeria')],
+            ['value' => 'sn', 'label' => __('Senegal')]
         ];
     }
 }
