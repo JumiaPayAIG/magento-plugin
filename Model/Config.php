@@ -90,7 +90,7 @@ class Config{
             return $this->getApiHost().'.sn';
             break;
         default:
-            return "";
+            return '';
             break;
         }
     }
