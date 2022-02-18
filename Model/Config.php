@@ -83,8 +83,14 @@ class Config{
         case 'ug':
             return $this->getApiHost().'.ug';
             break;
+        case 'dz':
+            return $this->getApiHost().'.dz';
+            break;
+        case 'sn':
+            return $this->getApiHost().'.sn';
+            break;
         default:
-            return "";
+            return '';
             break;
         }
     }
