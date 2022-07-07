@@ -25,8 +25,12 @@ class ConfigProvider implements ConfigProviderInterface {
      * {@inheritdoc}
      */
     public function getConfig() {
-        $outConfig = ['payment' => [\Jpay\Payments\Model\Jpay::METHOD_CODE => '']];
-
-        return $outConfig;
+        return [
+            'payment' => [
+                \Jpay\Payments\Model\Jpay::METHOD_CODE => [
+                    'country' => $this->config->getCountry()
+                ]
+            ]
+        ];
     }
 }

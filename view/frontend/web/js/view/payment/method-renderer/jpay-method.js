@@ -67,6 +67,21 @@ define(
         }
 
         return false;
+      },
+
+      getCountryImage: function () {
+        switch (wpConfig.country) {
+            case 'eg':
+                return 'jpay-logo-eg';
+            case 'ke':
+                return 'jpay-logo-ke';
+            case 'ci':
+                return 'jpay-logo-ci';
+            case 'ng':
+                return 'jpay-logo-ng';
+            default:
+                return 'jpay-logo-no-country';
+        }
       }
     });
   }
