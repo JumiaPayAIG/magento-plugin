@@ -49,6 +49,14 @@ class Config{
         }
     }
 
+    public function getShopConfigID() {
+        if ($this->getLiveMode()) {
+            return $this->getConfigValue('live_shop_config_id');
+        } else {
+            return $this->getConfigValue('sandbox_shop_config_id');
+        }
+    }
+
     public function getShopKey() {
         if ($this->getLiveMode()) {
             return $this->getConfigValue('live_shop_key');

@@ -20,8 +20,10 @@
         <payment_action>authorize</payment_action>
         <live_mode>0</live_mode>
         <sandbox_api_key/>
+        <sandbox_shop_config_id/>
         <sandbox_shop_key/>
         <live_api_key/>
+        <live_shop_config_id/>
         <live_shop_key/>
         <country/>
       </jpay>

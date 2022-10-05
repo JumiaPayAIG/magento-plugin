@@ -37,10 +37,6 @@ class JumiaPayClient {
         curl_close($curl);
 
         if ($httpcode != 200) {
-            if (isset($response['payload'][0]['description'])) {
-                throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-            }
-
             throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
         }
 
@@ -51,17 +47,25 @@ class JumiaPayClient {
 
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
-
-        return ['checkoutUrl' => $response['payload']['checkoutUrl'], 'purchaseId' => $response['payload']['purchaseId']];
+        if (isset($response['links'][0]['href'])) {
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['details'][0]['message']));
+        }
+        return ['checkoutUrl' => $response['links'][0]['href'], 'purchaseId' => $response['purchaseId']];
     }
 
     public function makeRefundRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
-        $this->makeRequest($endpoint, $headers, $body);
+        $response = $this->makeRequest($endpoint, $headers, $body);
+        if (isset($response['payload'][0]['description'])) {
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
+        }
     }
 
     public function makeCancelRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
-        $this->makeRequest($endpoint, $headers, $body);
+        $response = $this->makeRequest($endpoint, $headers, $body);
+        if (isset($response['payload'][0]['description'])) {
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
+        }
     }
 }

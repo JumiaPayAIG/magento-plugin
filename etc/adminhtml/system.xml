@@ -35,6 +35,13 @@
           </depends>
         </field>
 
+        <field id="sandbox_shop_config_id" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Sandbox Shop Config ID</label>
+          <depends>
+            <field id="live_mode">0</field>
+          </depends>
+        </field>
+
         <field id="sandbox_shop_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
           <label>Sandbox Shop Key</label>
           <depends>
@@ -44,6 +51,13 @@
 
         <field id="live_api_key" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
           <label>Live Api Key</label>
+          <depends>
+            <field id="live_mode">1</field>
+          </depends>
+        </field>
+
+        <field id="live_shop_config_id" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+          <label>Live Shop Config ID</label>
           <depends>
             <field id="live_mode">1</field>
           </depends>
