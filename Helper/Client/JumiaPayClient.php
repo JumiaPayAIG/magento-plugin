@@ -36,8 +36,18 @@ class JumiaPayClient {
 
         curl_close($curl);
 
-        if ($httpcode != 200) {
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
+        if ($httpcode >= 400) {
+            $message = "Error Connecting to JumiaPay";
+            if (isset($response['internal_code'])) {
+              $message = $message . " With code [".$response['internal_code']."]";
+            }
+            if (isset($response['details'][0]['message'])) {
+              $message = $message . " " .$response['details'][0]['message'];
+            }
+            if (isset($response['payload'][0]['description'])) {
+              $message = $message . " " .$response['payload'][0]['description'];
+            }
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($message." Payload: ".$body));
         }
 
         return $response;
@@ -47,25 +57,16 @@ class JumiaPayClient {
 
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
-        if (isset($response['links'][0]['href'])) {
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['details'][0]['message']));
-        }
         return ['checkoutUrl' => $response['links'][0]['href'], 'purchaseId' => $response['purchaseId']];
     }
 
     public function makeRefundRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
-        if (isset($response['payload'][0]['description'])) {
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-        }
     }
 
     public function makeCancelRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
-        if (isset($response['payload'][0]['description'])) {
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-        }
     }
 }

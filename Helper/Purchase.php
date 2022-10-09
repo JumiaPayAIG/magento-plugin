@@ -92,6 +92,9 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $grandTotal = $order->getGrandTotal();
 
+        $languageSplit = explode('_', $store->getLocale());
+        $language = $languageSplit[0];
+
         // Get Order Items
         $orderItems = $order->getAllVisibleItems();
         $shop_currency=$order->getOrderCurrencyCode();
@@ -122,7 +125,7 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
               "ipAddress" => $remote->getRemoteAddress(),
               "country" => $billingstate_country_ID,
               "mobilePhoneNumber" => $billingtelephone,
-              "language" => $store->getLocale(),
+              "language" => $language,
               "name" => substr($billing->getFirstname()." ".$billing->getLastname(), 0, 100),
               "firstName" => substr($billing->getFirstname() ?? '', 0, 50),
               "lastName" => substr($billing->getLastname() ?? '', 0, 50)
@@ -158,10 +161,9 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
             ),
         ];
 
+        $data = array_filter( $data, fn($value) => !is_null($value) && $value !== '' );
         return [
-          'json' => json_encode(
-            array_filter( $data, function( $v ) { return !( is_null( $v) or '' === $v ); } )
-          ),
+          'json' => json_encode($data),
           'merchantReferenceId' => $merchantReferenceId
         ];
     }
