@@ -47,7 +47,7 @@ class JumiaPayClient {
             if (isset($response['payload'][0]['description'])) {
               $message = $message . " " .$response['payload'][0]['description'];
             }
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($message." Payload: ".$body));
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($message));
         }
 
         return $response;
