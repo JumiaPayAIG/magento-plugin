@@ -161,11 +161,20 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
             ),
         ];
 
-        $data = array_filter( $data, fn($value) => !is_null($value) && $value !== '' );
+        $data = $this->filterNotNull($data);
         return [
           'json' => json_encode($data),
           'merchantReferenceId' => $merchantReferenceId
         ];
+    }
+
+    private function filterNotNull($data) {
+      $data = array_map(function($item) {
+          return is_array($item) ? $this->filterNotNull($item) : $item;
+      }, $data);
+      return array_filter($data, function($item) {
+          return $item !== "" && $item !== null && (!is_array($item) || count($item) > 0);
+      });
     }
 
     public function setOrderStateByID($orderId, $state, $status){
