@@ -44,6 +44,9 @@ class JumiaPayClient {
             if (isset($response['details'][0]['message'])) {
               $message = $message . " " .$response['details'][0]['message'];
             }
+            if (isset($response['payload'][0]['code'])) {
+              $message = $message . " With code [" .$response['payload'][0]['code']."]";
+            }
             if (isset($response['payload'][0]['description'])) {
               $message = $message . " " .$response['payload'][0]['description'];
             }

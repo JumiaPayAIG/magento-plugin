@@ -169,8 +169,8 @@ class JumiaPay extends \Magento\Framework\App\Helper\AbstractHelper {
     private function createHeaders() {
         return [
             'apikey: '.$this->config->getPayApiKey(),
-            "Content-type: application/json",
-            'User-Agent' => 'jpay-magento-plugin/' . $this->getModuleVersion()
+            'Content-type: application/json',
+            'User-Agent: jpay-magento-plugin/' . $this->getModuleVersion()
         ];
     }
 
