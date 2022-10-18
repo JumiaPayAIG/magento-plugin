@@ -37,20 +37,7 @@ class JumiaPayClient {
         curl_close($curl);
 
         if ($httpcode >= 400) {
-            $message = "Error Connecting to JumiaPay";
-            if (isset($response['internal_code'])) {
-              $message = $message . " With code [".$response['internal_code']."]";
-            }
-            if (isset($response['details'][0]['message'])) {
-              $message = $message . " " .$response['details'][0]['message'];
-            }
-            if (isset($response['payload'][0]['code'])) {
-              $message = $message . " With code [" .$response['payload'][0]['code']."]";
-            }
-            if (isset($response['payload'][0]['description'])) {
-              $message = $message . " " .$response['payload'][0]['description'];
-            }
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($message));
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($this->getErrorMessage($response)));
         }
 
         return $response;
@@ -71,5 +58,25 @@ class JumiaPayClient {
     public function makeCancelRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
+    }
+
+    private function getErrorMessage($response) {
+      $message = "Error Connecting to JumiaPay";
+      if (isset($response['internal_code'])) {
+        $message = $message . " With code [".$response['internal_code']."]";
+      }
+      if (isset($response['details'][0]['message'])) {
+        $message = $message . " " .$response['details'][0]['message'];
+      }
+      if (isset($response['payload'][0]['code'])) {
+        $message = $message . " With code [" .$response['payload'][0]['code']."]";
+      }
+      if (isset($response['payload'][0]['description'])) {
+        $message = $message . " " .$response['payload'][0]['description'];
+      }
+      if (isset($response['message'])) {
+        $message = $message . " " . $response['message'];
+      }
+      return $message;
     }
 }
