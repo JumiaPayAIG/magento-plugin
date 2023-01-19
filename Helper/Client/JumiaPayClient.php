@@ -36,12 +36,8 @@ class JumiaPayClient {
 
         curl_close($curl);
 
-        if ($httpcode != 200) {
-            if (isset($response['payload'][0]['description'])) {
-                throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($response['payload'][0]['description']));
-            }
-
-            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase("Error Conecting to JumiaPay"));
+        if ($httpcode >= 400) {
+            throw new \Magento\Framework\Validator\Exception(new \Magento\Framework\Phrase($this->getErrorMessage($response)));
         }
 
         return $response;
@@ -51,17 +47,36 @@ class JumiaPayClient {
 
         $this->log->info(__FUNCTION__);
         $response = $this->makeRequest($endpoint, $headers, $body);
-
-        return ['checkoutUrl' => $response['payload']['checkoutUrl'], 'purchaseId' => $response['payload']['purchaseId']];
+        return ['checkoutUrl' => $response['links'][0]['href'], 'purchaseId' => $response['purchaseId']];
     }
 
     public function makeRefundRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
-        $this->makeRequest($endpoint, $headers, $body);
+        $response = $this->makeRequest($endpoint, $headers, $body);
     }
 
     public function makeCancelRequest($endpoint, $headers, $body) {
         $this->log->info(__FUNCTION__);
-        $this->makeRequest($endpoint, $headers, $body);
+        $response = $this->makeRequest($endpoint, $headers, $body);
+    }
+
+    private function getErrorMessage($response) {
+      $message = "Error Connecting to JumiaPay";
+      if (isset($response['internal_code'])) {
+        $message = $message . " With code [".$response['internal_code']."]";
+      }
+      if (isset($response['details'][0]['message'])) {
+        $message = $message . " " .$response['details'][0]['message'];
+      }
+      if (isset($response['payload'][0]['code'])) {
+        $message = $message . " With code [" .$response['payload'][0]['code']."]";
+      }
+      if (isset($response['payload'][0]['description'])) {
+        $message = $message . " " .$response['payload'][0]['description'];
+      }
+      if (isset($response['message'])) {
+        $message = $message . " " . $response['message'];
+      }
+      return $message;
     }
 }

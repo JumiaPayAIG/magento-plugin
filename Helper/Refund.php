@@ -29,8 +29,9 @@ class Refund extends \Magento\Framework\App\Helper\AbstractHelper {
             "shopConfig" => $this->config->getShopKey(),
             "refundAmount" => $amount,
             "refundCurrency" => $order->getOrderCurrencyCode(),
-            "description" => "Refund for order #".$order->getExtOrderId(),
+            "description" => "Refund for order #".$order->getData('purchaseId'),
             "purchaseReferenceId" => $order->getData('merchantReferenceId'),
+            "purchaseId" => $order->getData('purchaseId'),
             "referenceId"=> $merchantReferenceId
         ];
         return ['json' => json_encode($data), 'merchantReferenceId' => $merchantReferenceId];

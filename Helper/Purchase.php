@@ -92,83 +92,89 @@ class Purchase extends \Magento\Framework\App\Helper\AbstractHelper {
 
         $grandTotal = $order->getGrandTotal();
 
+        $languageSplit = explode('_', $store->getLocale());
+        $language = $languageSplit[0];
+
         // Get Order Items
         $orderItems = $order->getAllVisibleItems();
         $shop_currency=$order->getOrderCurrencyCode();
         $basketItems=array();
         foreach ($orderItems as $item) {
-            $product = $this->_productRepositoryFactory->create()
-                                                       ->getById($item->getProductId());
-
-            $image_url = $this->imageHelper->init($product, 'product_base_image')->getUrl();
-
             $basketItem=[
                 "name"=> $item->getName(),
-                "imageUrl"=>$image_url,
                 "amount"=> $item->getPrice(),
                 "quantity"=> intval($item->getQtyOrdered()),
-                "discount"=>"",
                 "currency"=> $shop_currency
             ];
             array_push($basketItems,$basketItem);
         }
 
         $data = [
-            "shopConfig" => $this->config->getShopKey(),
+            "description" => substr("Payment for order " .$order->getRealOrderId(), 0, 250),
+            "amount" => array(
+              "value" => $grandTotal,
+              "currency" => $shop_currency
+            ),
+            "merchant" => array(
+              "referenceId" => $merchantReferenceId,
+              "callbackUrl" => $this->storeManager->getStore()->getBaseUrl() . 'jpay/payment/ipn?orderId='.$order->getRealOrderId(),
+              "returnUrl" => $this->storeManager->getStore()->getBaseUrl() . $this->config->getReturnUrl(). '?orderId='.$order->getRealOrderId()
+            ),
+            "consumer" => array(
+              "emailAddress" => $billing->getEmail(),
+              "ipAddress" => $remote->getRemoteAddress(),
+              "country" => $billingstate_country_ID,
+              "mobilePhoneNumber" => $billingtelephone,
+              "language" => $language,
+              "name" => substr($billing->getFirstname()." ".$billing->getLastname(), 0, 100),
+              "firstName" => substr($billing->getFirstname() ?? '', 0, 50),
+              "lastName" => substr($billing->getLastname() ?? '', 0, 50)
+            ),
             "basket" => array(
-                "shipping" =>strval($order->getShippingAmount()),
+                "shippingAmount" => strval($order->getShippingAmount()),
                 "currency" => $shop_currency,
-                "basketItems" => $basketItems,
-                "totalAmount" => $grandTotal,
-                "discount" => ""
+                "items" => $basketItems,
             ),
-            "consumerData" => array(
-                "emailAddress" => $billing->getEmail(),
-                "mobilePhoneNumber" => $billingtelephone,
-                "country" => $billingstate_country_ID,
-                "firstName" => $billing->getFirstname(),
-                "lastName" => $billing->getLastname(),
-                "ipAddress" => $remote->getRemoteAddress(),
-                "dateOfBirth" => "",
-                "language" => $store->getLocale(),
-                "name" => $billing->getFirstname()." ".$billing->getLastname(),
-            ),
-            "priceCurrency" => $shop_currency,
-            "purchaseReturnUrl" => $this->storeManager->getStore()->getBaseUrl() . $this->config->getReturnUrl(). '?orderId='.$order->getRealOrderId(),
-            "purchaseCallbackUrl" => $this->storeManager->getStore()->getBaseUrl() . 'jpay/payment/ipn?orderId='.$order->getRealOrderId(),
             "shippingAddress" => array(
-                "addressLine1" => $shippingStreet[0],
-                "addressLine2" => "Yaba",
-                "city" => $shippingcity,
-                "district" => $shippingstate,
-                "province" => $shippingstate,
-                "zip" => $shippingpostcode,
+                "addressLine1" => substr($shippingStreet[0] ?? '', 0, 512),
+                "city" => substr($shippingcity ?? '', 0, 50),
+                "district" => substr($shippingstate ?? '', 0, 50),
+                "province" => substr($shippingstate ?? '', 0, 50),
+                "zip" => substr($shippingpostcode ?? '', 0, 10),
                 "country" => $shippingstate_country_ID,
-                "name" => $shippingaddress->getFirstname()." ".$shippingaddress->getLastname(),
-                "firstName" => $shippingaddress->getFirstname(),
-                "lastName" => $shippingaddress->getLastname(),
+                "name" => substr($shippingaddress->getFirstname()." ".$shippingaddress->getLastname(), 0, 100),
+                "firstName" => substr($shippingaddress->getFirstname() ?? '', 0, 50),
+                "lastName" => substr($shippingaddress->getLastname() ?? '', 0, 50),
                 "mobilePhoneNumber" => $shippingtelephone
             ),
             "billingAddress" => array(
-                "addressLine1" => $billingStreet[0],
-                "addressLine2" => "Yaba",
-                "city" => $billingcity,
-                "district" => $billingstate,
-                "province" => $billingstate,
-                "zip" => $billingpostcode,
+                "addressLine1" => substr($billingStreet[0] ?? '', 0, 512),
+                "city" => substr($billingcity ?? '', 0, 50),
+                "district" => substr($billingstate ?? '', 0, 50),
+                "province" => substr($billingstate ?? '', 0, 50),
+                "zip" => substr($billingpostcode ?? '', 0, 10),
                 "country" => $billingstate_country_ID,
-                "name" => $billing->getFirstname()." ".$billing->getLastname(),
-                "firstName" => $billing->getFirstname(),
-                "lastName" => $billing->getLastname(),
+                "name" => substr($billing->getFirstname()." ".$billing->getLastname(), 0, 100),
+                "firstName" => substr($billing->getFirstname() ?? '', 0, 50),
+                "lastName" => substr($billing->getLastname() ?? '', 0, 50),
                 "mobilePhoneNumber" => $billingtelephone
             ),
-            "additionalData" => array(),
-            "merchantReferenceId" => $merchantReferenceId,
-            "customerType" => "regular",
-            "priceAmount" => $grandTotal
         ];
 
-        return ['json' => json_encode($data), 'merchantReferenceId' => $merchantReferenceId];
+        $data = $this->filterNotNull($data);
+        return [
+          'json' => json_encode($data),
+          'merchantReferenceId' => $merchantReferenceId
+        ];
+    }
+
+    private function filterNotNull($data) {
+      $data = array_map(function($item) {
+          return is_array($item) ? $this->filterNotNull($item) : $item;
+      }, $data);
+      return array_filter($data, function($item) {
+          return $item !== "" && $item !== null && (!is_array($item) || count($item) > 0);
+      });
     }
 
     public function setOrderStateByID($orderId, $state, $status){
