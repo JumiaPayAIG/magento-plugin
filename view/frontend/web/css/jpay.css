@@ -48,7 +48,7 @@
 .payment-method.jpay .jpay-logo-ke {
     height: 61px;
     width: 200px;
-    background: no-repeat url('../images/secured_payfac_kenya.png');
+    background: no-repeat url('../images/secured_payfac_ke.png');
     background-position-y: 2px;
     background-size: 100% 100%;
     border: 1px solid #DDD;
@@ -87,7 +87,7 @@
 .payment-method.jpay .jpay-logo-no-country {
     height: 61px;
     width: 200px;
-    background: no-repeat url('../images/secured_payfac_not country-specific.png');
+    background: no-repeat url('../images/secured_payfac_default.png');
     background-position-y: 2px;
     background-size: 100% 100%;
     border: 1px solid #DDD;
