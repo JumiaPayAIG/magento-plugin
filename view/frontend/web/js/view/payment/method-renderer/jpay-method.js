@@ -80,7 +80,7 @@ define(
             case 'ng':
                 return 'jpay-logo-ng';
             default:
-                return 'jpay-logo-no-country';
+                return 'jpay-logo-default';
         }
       }
     });

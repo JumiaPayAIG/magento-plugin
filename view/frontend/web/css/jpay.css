@@ -84,7 +84,7 @@
     margin-right: 5px;
 }
 
-.payment-method.jpay .jpay-logo-no-country {
+.payment-method.jpay .jpay-logo-default {
     height: 61px;
     width: 200px;
     background: no-repeat url('../images/secured_payfac_default.png');
