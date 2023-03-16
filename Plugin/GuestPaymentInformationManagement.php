@@ -52,7 +52,7 @@ class GuestPaymentInformationManagement {
         /* Execute the normal Magento 2 method and save the order ID. */
         $orderId = $proceed($cartId, $email, $paymentMethod, $billingAddress);
 
-        if ($paymentMethod->getMethod() == \Jpay\Payments\Model\JPay::METHOD_CODE){
+        if ($paymentMethod->getMethod() == \Jpay\Payments\Model\Jpay::METHOD_CODE){
                 $this->log->info(__FUNCTION__ . __(" Processing order #%1", $orderId));
 
                 try {
