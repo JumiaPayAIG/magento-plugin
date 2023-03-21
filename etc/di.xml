@@ -29,7 +29,7 @@
     <plugin name="beforeSavePaymentInformationAndPlaceOrderGuest" type="Jpay\Payments\Plugin\GuestPaymentInformationManagement" />
   </type>
   <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
-    <plugin name="beforeSavePaymentInformationAndPlaceOrderGuest" type="Jpay\Payments\Plugin\PaymentInformationManagement" />
+    <plugin name="beforeSavePaymentInformationAndPlaceOrder" type="Jpay\Payments\Plugin\PaymentInformationManagement" />
   </type>
   <type name="Magento\Framework\App\Request\CsrfValidator">
     <plugin name="csrf_validator_skip" type="Jpay\Payments\Plugin\CsrfValidatorSkip" />
